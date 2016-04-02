@@ -1,0 +1,6 @@
+.Rapp.history
+.RData
+.Rhistory
+*.o
+*.so
+inst/doc
