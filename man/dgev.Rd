@@ -4,7 +4,7 @@
 \alias{dgev}
 \title{Compute the density function for the GEV}
 \usage{
-dgev(x, mu, sigma, xi)
+dgev(x, mu, sigma, xi, log = FALSE)
 }
 \description{
 Compute the density function for the GEV

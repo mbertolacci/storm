@@ -3,28 +3,52 @@
 
 #' @export
 rgev <- function(n, mu, sigma, xi) {
-    .Call('threecomponentmixture_rgevVector', PACKAGE = 'threecomponentmixture', n, mu, sigma, xi)
+    .Call('positivemixtures_rgevVector', PACKAGE = 'positivemixtures', n, mu, sigma, xi)
 }
 
 .estimatePwm <- function(x, r) {
-    .Call('threecomponentmixture_estimatePwm', PACKAGE = 'threecomponentmixture', x, r)
+    .Call('positivemixtures_estimatePwm', PACKAGE = 'positivemixtures', x, r)
 }
 
 #' @export
 gevPwmEstimate <- function(x) {
-    .Call('threecomponentmixture_gevPwmEstimate', PACKAGE = 'threecomponentmixture', x)
+    .Call('positivemixtures_gevPwmEstimate', PACKAGE = 'positivemixtures', x)
 }
 
 #' @export
 gevPwmEstimateConstrained <- function(x, supportLim) {
-    .Call('threecomponentmixture_gevPwmEstimateConstrained', PACKAGE = 'threecomponentmixture', x, supportLim)
+    .Call('positivemixtures_gevPwmEstimateConstrained', PACKAGE = 'positivemixtures', x, supportLim)
 }
 
-.threeComponentMixtureHMMSample <- function(nSamples, burnIn, y, prior, zStart, thetaStart) {
-    .Call('threecomponentmixture_threeComponentMixtureHMMSample', PACKAGE = 'threecomponentmixture', nSamples, burnIn, y, prior, zStart, thetaStart)
+.ptsm_hmm_sample <- function(nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, thetaStart, thetaSampleThinning = 1L, zSampleThinning = 0L, yMissingSampleThinning = 0L, verbose = 0L) {
+    .Call('positivemixtures_hmmSample', PACKAGE = 'positivemixtures', nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, thetaStart, thetaSampleThinning, zSampleThinning, yMissingSampleThinning, verbose)
 }
 
-.threeComponentMixtureSample <- function(nSamples, burnIn, y, prior, zStart, thetaStart) {
-    .Call('threecomponentmixture_threeComponentMixtureSample', PACKAGE = 'threecomponentmixture', nSamples, burnIn, y, prior, zStart, thetaStart)
+.ptsm_independent_sample <- function(nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, thetaStart, thetaSampleThinning = 1L, zSampleThinning = 0L, yMissingSampleThinning = 0L, verbose = 0L) {
+    .Call('positivemixtures_independentSample', PACKAGE = 'positivemixtures', nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, thetaStart, thetaSampleThinning, zSampleThinning, yMissingSampleThinning, verbose)
+}
+
+.ptsm_logistic_ergodic_p <- function(deltaSamplesR, zSamplesR, z0SamplesR, explanatoryVariablesR, order) {
+    .Call('positivemixtures_logisticErgodicP', PACKAGE = 'positivemixtures', deltaSamplesR, zSamplesR, z0SamplesR, explanatoryVariablesR, order)
+}
+
+.ptsm_logistic_predicted_p <- function(deltaSamplesR, z0SamplesR, explanatoryVariablesR, order) {
+    .Call('positivemixtures_logisticPredictedP', PACKAGE = 'positivemixtures', deltaSamplesR, z0SamplesR, explanatoryVariablesR, order)
+}
+
+.ptsm_logistic_generate <- function(deltaR, explanatoryVariablesR, thetaLower, thetaUpper, distributionNames, order) {
+    .Call('positivemixtures_logisticGenerate', PACKAGE = 'positivemixtures', deltaR, explanatoryVariablesR, thetaLower, thetaUpper, distributionNames, order)
+}
+
+.ptsm_logistic_sample <- function(nSamples, burnIn, panelYR, panelExplanatoryVariablesR, order, distributionNames, priors, samplingSchemes, panelZStart, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, thetaSampleThinning = 1L, zSampleThinning = 0L, yMissingSampleThinning = 0L, verbose = 0L) {
+    .Call('positivemixtures_logisticSample', PACKAGE = 'positivemixtures', nSamples, burnIn, panelYR, panelExplanatoryVariablesR, order, distributionNames, priors, samplingSchemes, panelZStart, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, thetaSampleThinning, zSampleThinning, yMissingSampleThinning, verbose)
+}
+
+.ptsm_logistic_sample_y <- function(panelExplanatoryVariablesR, panelDeltaSampleR, thetaLowerSampleR, thetaUpperSampleR, distributionNames) {
+    .Call('positivemixtures_logisticSampleY', PACKAGE = 'positivemixtures', panelExplanatoryVariablesR, panelDeltaSampleR, thetaLowerSampleR, thetaUpperSampleR, distributionNames)
+}
+
+benchmarkLogistic <- function(nDeltas, nValues, nIterations) {
+    invisible(.Call('positivemixtures_benchmarkLogistic', PACKAGE = 'positivemixtures', nDeltas, nValues, nIterations))
 }
 

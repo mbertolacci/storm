@@ -1,4 +1,4 @@
 library(testthat)
-library(mixturemodels)
+library(positivemixtures)
 
-test_check("threecomponentmixture")
+test_check('positivemixtures')

@@ -1,9 +1,10 @@
-PKG_CXXFLAGS = $(CXX1XSTD) $(SHLIB_OPENMP_CXXFLAGS)
+PKG_CXXFLAGS = $(CXX1XSTD) $(SHLIB_OPENMP_CXXFLAGS) -Wall
+#	-DARMA_NO_DEBUG
+#	-fopt-info-vec-missed=vecmissed.optrpt
+#    -ftree-vectorizer-verbose=7
+#    -qopt-report=5 -qopt-report-phase=vec
 PKG_CFLAGS = $(SHLIB_OPENMP_CFLAGS)
 PKG_FFLAGS = $(SHLIB_OPENMP_FFLAGS)
 PKG_FCFLAGS = $(SHLIB_OPENMP_FCFLAGS)
 
-PKG_LIBS = $(SHLIB_OPENMP_CFLAGS)
-ifeq ($(CXX),icpc)
-	PKG_LIBS = $(SHLIB_OPENMP_CFLAGS) -lstdc++ -qopt-report -qopt-report-phase=vec
-endif
+PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(SHLIB_OPENMP_CFLAGS)

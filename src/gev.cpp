@@ -1,6 +1,8 @@
-#include <Rcpp.h>
+#include <algorithm>
+#include <RcppArmadillo.h>
 
-using namespace Rcpp;
+using Rcpp::CharacterVector;
+using Rcpp::NumericVector;
 
 double rgev(double mu, double sigma, double xi) {
     return mu - (sigma / xi) * (1 - pow(-log(R::runif(0, 1)), -xi));

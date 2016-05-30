@@ -1,20 +1,17 @@
-Package: threecomponentmixture
+Package: positivemixtures
 Type: Package
-Title: The three component mixture model
+Title: Mixture models for the positive real line
 Version: 0.0.1
 Date: 2016-03-08
 Author: Michael Bertolacci
 Maintainer: Michael Bertolacci <m.bertolacci@gmail.com>
-Description: Performs Bayesian estimation of the three component mixture model.
+Description: Performs Bayesian estimation of mixture models for the positive real line
 License: MIT + file LICENSE
 Imports:
     Rcpp (>= 0.12.0),
-    ggplot2,
-    reshape2,
-    gridExtra,
-    scales,
-    GGally
-LinkingTo: Rcpp
+    RcppArmadillo,
+    coda
+LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 5.0.1
 Suggests: testthat,
     knitr,

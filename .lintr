@@ -1,0 +1,2 @@
+linters: with_defaults(line_length_linter(120), infix_spaces_linter(c('EQ_SUB')), single_quotes_linter=NULL, double_quotes_linter, spaces_left_parentheses_linter=NULL, commented_code_linter=NULL, object_usage_linter=NULL, object_length_linter=NULL)
+exclusions: list('R/RcppExports.R')
