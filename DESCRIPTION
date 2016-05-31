@@ -15,5 +15,6 @@ LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 5.0.1
 Suggests: testthat,
     knitr,
+    lintr,
     rmarkdown
 VignetteBuilder: knitr
