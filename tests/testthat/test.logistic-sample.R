@@ -73,6 +73,22 @@ test_that('ptsm_logistic_sample on panel data', {
     n_deltas <- 5
     output <- get_sample(n_levels, n_per_level, n_samples)
 
+    # Check column names match (yuck)
+    expect_equal(unname(colnames(output$theta_sample)), c(
+        'alpha[1]', 'beta[1]', 'alpha[2]', 'beta[2]',
+        '(Intercept):1[1]', 't:1[1]', 'I(t^2):1[1]', 'z2(t-1):1[1]', 'z3(t-1):1[1]',
+        '(Intercept):1[2]', 't:1[2]', 'I(t^2):1[2]', 'z2(t-1):1[2]', 'z3(t-1):1[2]',
+        '(Intercept):2[1]', 't:2[1]', 'I(t^2):2[1]', 'z2(t-1):2[1]', 'z3(t-1):2[1]',
+        '(Intercept):2[2]', 't:2[2]', 'I(t^2):2[2]', 'z2(t-1):2[2]', 'z3(t-1):2[2]',
+        '(Intercept):family_mean[1]', 't:family_mean[1]', 'I(t^2):family_mean[1]', 'z2(t-1):family_mean[1]',
+            'z3(t-1):family_mean[1]',
+        '(Intercept):family_mean[2]', 't:family_mean[2]', 'I(t^2):family_mean[2]', 'z2(t-1):family_mean[2]',
+            'z3(t-1):family_mean[2]',
+        '(Intercept):family_variance[1]', 't:family_variance[1]', 'I(t^2):family_variance[1]',
+            'z2(t-1):family_variance[1]', 'z3(t-1):family_variance[1]',
+        '(Intercept):family_variance[2]', 't:family_variance[2]', 'I(t^2):family_variance[2]',
+            'z2(t-1):family_variance[2]', 'z3(t-1):family_variance[2]'
+    ))
     expect_equal(nrow(output$theta_sample), n_samples)
     expect_equal(ncol(output$theta_sample), 4 + 2 * n_deltas * (n_levels + 2))
     expect_equal(nrow(output$z_sample), n_samples)

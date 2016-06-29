@@ -104,7 +104,14 @@ ptsm_logistic_sample <- function(
     if (order == 0) {
         delta_param_names <- colnames(panel_explanatory_variables[[1]])
     } else {
-        delta_param_names <- c(colnames(panel_explanatory_variables[[1]]), 'z2(t-1)', 'z3(t-1)')
+        delta_param_names <- c(colnames(panel_explanatory_variables[[1]]))
+        for (i in 1 : order) {
+            delta_param_names <- c(
+                delta_param_names,
+                paste0('z2(t-', i, ')'),
+                paste0('z3(t-', i, ')')
+            )
+        }
     }
 
     if (n_levels == 1) {
