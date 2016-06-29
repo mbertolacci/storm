@@ -159,7 +159,7 @@ ptsm_logistic_sample <- function(
 #' @export
 ptsm_logistic_sample_y <- function(sampler_results, y_sample_thinning=1) {
     if (is.na(sampler_results$panel_variable)) {
-        data_levels <- factor(rep('dummy'), nrow(sampler_results$data))
+        data_levels <- factor(rep('dummy', nrow(sampler_results$data)))
     } else {
         data_levels <- sampler_results$data[[sampler_results$panel_variable]]
     }
