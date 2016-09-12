@@ -9,7 +9,7 @@
 
         if (distributions[index] == 'gamma') {
             y[z == component_z] <- rgamma(
-                length(which(z == component_z)), parameters[1], scale=parameters[2]
+                length(which(z == component_z)), parameters[1], scale = parameters[2]
             )
         } else if (distributions[index] == 'gev') {
             y[z == component_z] <- rgev(

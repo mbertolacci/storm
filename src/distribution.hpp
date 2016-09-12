@@ -4,12 +4,15 @@
 #include <RcppArmadillo.h>
 #include "gengamma.hpp"
 #include "gev.hpp"
-#include "rgamma-thread-safe.hpp"
+#include "rng.hpp"
+
+using ptsm::rng;
 
 typedef enum {
     GAMMA,
     GEV,
-    GENERALISED_GAMMA
+    GENERALISED_GAMMA,
+    LOG_NORMAL
 } DistributionType;
 
 class Distribution {
@@ -23,6 +26,8 @@ class Distribution {
             type_ = GEV;
         } else if (strcmp(typeName, "gengamma") == 0) {
             type_ = GENERALISED_GAMMA;
+        } else if (strcmp(typeName, "lnorm") == 0) {
+            type_ = LOG_NORMAL;
         } else {
             Rcpp::stop("Distribution %s not supported", typeName);
         }
@@ -36,6 +41,8 @@ class Distribution {
             return "gev";
         case GENERALISED_GAMMA:
             return "gengamma";
+        case LOG_NORMAL:
+            return "lnorm";
         default:
             return NULL;
         }
@@ -65,6 +72,8 @@ class Distribution {
             }
         case GENERALISED_GAMMA:
             return x > 0;
+        case LOG_NORMAL:
+            return x > 0;
         default:
             return false;
         }
@@ -73,11 +82,13 @@ class Distribution {
     double sample(arma::colvec parameters) const {
         switch (type_) {
         case GAMMA:
-            return rgammaThreadSafe(parameters[0], parameters[1]);
+            return rng.randg(parameters[0], parameters[1]);
         case GEV:
             return rgev(parameters[0], parameters[1], parameters[2]);
         case GENERALISED_GAMMA:
             return rgengamma(parameters[0], parameters[1], parameters[2]);
+        case LOG_NORMAL:
+            return R::rlnorm(parameters[0], parameters[1]);
         default:
             return -1;
         }
@@ -91,6 +102,10 @@ class DataBoundDistribution {
  public:
     DataBoundDistribution(
         arma::colvec y, arma::colvec logY, arma::ucolvec z, unsigned int thisZ, Distribution distribution
+    );
+
+    DataBoundDistribution(
+        unsigned int thisN, double sumY, double sumLogY, Distribution distribution
     );
 
     double logLikelihood(arma::colvec parameters) const;
@@ -116,7 +131,7 @@ class DataBoundDistribution {
     arma::colvec logY_;
     arma::ucolvec z_;
     unsigned int thisZ_;
-    int thisN_;
+    unsigned int thisN_;
     double sumY_;
     double sumLogY_;
     Distribution distribution_;
@@ -157,6 +172,8 @@ class ParameterBoundDistribution {
             double Qw = Q * (log(x) - parameters_[0]) / parameters_[1];
             return exp(norm_ + (Qw - exp(Qw)) / (Q * Q)) / x;
         }
+        case LOG_NORMAL:
+            return R::dlnorm(x, parameters_[0], parameters_[1], false);
         default:
             return -1;
         }

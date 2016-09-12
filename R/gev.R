@@ -1,6 +1,6 @@
 #' Compute the density function for the GEV
 #' @export
-dgev <- function(x, mu, sigma, xi, log=FALSE) {
+dgev <- function(x, mu, sigma, xi, log = FALSE) {
     if (xi == 0) {
         t <- (x - mu) / sigma
         log_density <- log(1 / sigma) - t - exp(-t)

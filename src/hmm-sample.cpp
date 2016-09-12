@@ -6,7 +6,7 @@
 
 #include "distribution.hpp"
 #include "parameter-sampler.hpp"
-#include "rgamma-thread-safe.hpp"
+#include "rng.hpp"
 #include "utils.hpp"
 
 using arma::colvec;
@@ -23,6 +23,9 @@ using Rcpp::Rcout;
 using Rcpp::StringVector;
 using Rcpp::wrap;
 
+using ptsm::RNG;
+using ptsm::rng;
+
 mat samplePHMM(ucolvec zCurrent, ucolvec zPrevious, mat pPrior) {
     mat P(size(pPrior));
     colvec n(pPrior.n_cols);
@@ -37,7 +40,7 @@ mat samplePHMM(ucolvec zCurrent, ucolvec zPrevious, mat pPrior) {
 
         double sum = 0;
         for (unsigned int jj = 0; jj < P.n_cols; ++jj) {
-            P(j, jj) = rgammaThreadSafe(pPrior(j, jj) + n[jj], 1);
+            P(j, jj) = rng.randg(pPrior(j, jj) + n[jj], 1);
             sum += P(j, jj);
         }
         for (unsigned int jj = 0; jj < P.n_cols; ++jj) {
@@ -57,6 +60,8 @@ List hmmSample(
     int thetaSampleThinning = 1, int zSampleThinning = 0, int yMissingSampleThinning = 0,
     unsigned int verbose = 0
 ) {
+    RNG::initialise();
+
     unsigned int nIterations = nSamples + burnIn;
 
     // Priors and samplers
@@ -109,12 +114,14 @@ List hmmSample(
     // Initial missing value sample
     sampleMissingY(
         y, logY, yMissingIndices, zCurrent,
-        ParameterBoundDistribution(thetaLower, lowerDistribution),
-        ParameterBoundDistribution(thetaUpper, upperDistribution)
+        {
+            ParameterBoundDistribution(thetaLower, lowerDistribution),
+            ParameterBoundDistribution(thetaUpper, upperDistribution)
+        }
     );
 
     // Initial z0 sample
-    zPrevious[0] = sampleSingleZ(pCurrent(zCurrent[0] - 1, 1), pCurrent(zCurrent[0] - 1, 2));
+    zPrevious[0] = sampleSingleZ({ pCurrent(zCurrent[0] - 1, 1), pCurrent(zCurrent[0] - 1, 2) });
 
     std::chrono::time_point<std::chrono::system_clock> startIteration, endIteration;
     startIteration = std::chrono::system_clock::now();
@@ -130,7 +137,7 @@ List hmmSample(
         thetaUpper = upperSampler.sample(thetaUpper, DataBoundDistribution(y, logY, zCurrent, 3, upperDistribution));
 
         // Sample \bm{z}
-        zPrevious[0] = sampleSingleZ(pCurrent(zCurrent[0] - 1, 1), pCurrent(zCurrent[0] - 1, 2));
+        zPrevious[0] = sampleSingleZ({ pCurrent(zCurrent[0] - 1, 1), pCurrent(zCurrent[0] - 1, 2) });
 
         for (unsigned int i = 0; i < zCurrent.n_elem; ++i) {
             pCurrentGivenZ(i, 0) = pCurrent(zPrevious[i] - 1, 1);
@@ -138,8 +145,10 @@ List hmmSample(
         }
         zCurrent = sampleZ(
             pCurrentGivenZ, y, yIsMissing,
-            ParameterBoundDistribution(thetaLower, lowerDistribution),
-            ParameterBoundDistribution(thetaUpper, upperDistribution)
+            {
+                ParameterBoundDistribution(thetaLower, lowerDistribution),
+                ParameterBoundDistribution(thetaUpper, upperDistribution)
+            }
         );
 
         std::copy(zCurrent.begin(), zCurrent.end() - 1, zPrevious.begin() + 1);
@@ -147,8 +156,10 @@ List hmmSample(
         // Sample missing values \bm{y^*}
         sampleMissingY(
             y, logY, yMissingIndices, zCurrent,
-            ParameterBoundDistribution(thetaLower, lowerDistribution),
-            ParameterBoundDistribution(thetaUpper, upperDistribution)
+            {
+                ParameterBoundDistribution(thetaLower, lowerDistribution),
+                ParameterBoundDistribution(thetaUpper, upperDistribution)
+            }
         );
 
         if (verbose > 0 && iteration % verbose == 0) {

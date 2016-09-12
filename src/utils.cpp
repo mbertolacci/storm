@@ -1,11 +1,21 @@
+#include <map>
+#include <set>
 #include <vector>
 #include <RcppArmadillo.h>
+#include "rng.hpp"
 #include "utils.hpp"
 
 using arma::colvec;
 using arma::mat;
 using arma::max;
 using arma::ucolvec;
+
+using Rcpp::IntegerVector;
+using Rcpp::List;
+using Rcpp::NumericMatrix;
+using Rcpp::NumericVector;
+
+using ptsm::rng;
 
 MissingValuesPair findMissingValues(Rcpp::NumericVector y) {
     int n = y.length();
@@ -28,64 +38,132 @@ MissingValuesPair findMissingValues(Rcpp::NumericVector y) {
 
 void sampleMissingY(
     colvec &y, colvec &logY, const ucolvec yMissingIndices, const ucolvec zCurrent,
-    const ParameterBoundDistribution boundLowerDistribution, const ParameterBoundDistribution boundUpperDistribution
+    const std::vector<ParameterBoundDistribution> distributions
 ) {
     for (unsigned int i = 0; i < yMissingIndices.n_elem; ++i) {
         int index = yMissingIndices[i];
         if (zCurrent[index] == 1) {
             y[index] = 0;
-        } else if (zCurrent[index] == 2) {
-            y[index] = boundLowerDistribution.sample();
         } else {
-            y[index] = boundUpperDistribution.sample();
+            y[index] = distributions[zCurrent[index] - 2].sample();
         }
         logY[index] = log(y[index]);
     }
 }
 
-int sampleSingleZ(double pLower, double pUpper) {
-    double u = R::runif(0, 1);
-    if (u < pLower) {
-        return 2;
-    } else if (u < pLower + pUpper) {
-        return 3;
-    } else {
-        return 1;
+unsigned int sampleSingleZ(const colvec p) {
+    double u = rng.randu();
+
+    for (unsigned int k = 0; k < p.n_elem; ++k) {
+        if (u < p[k]) {
+            return k + 2;
+        }
+        u -= p[k];
     }
+
+    return 1;
 }
 
 ucolvec sampleZ(
     const mat pCurrent,
-    const colvec y, const std::vector<bool> yIsMissing,
-    const ParameterBoundDistribution boundLowerDistribution, const ParameterBoundDistribution boundUpperDistribution
+    const colvec y, const std::vector<bool> &yIsMissing,
+    const std::vector<ParameterBoundDistribution> distributions
 ) {
     ucolvec z(y.n_elem);
 
+    colvec p(pCurrent.n_cols);
+
     for (unsigned int i = 0; i < y.n_elem; ++i) {
         if (yIsMissing[i]) {
-            z[i] = sampleSingleZ(pCurrent(i, 0), pCurrent(i, 1));
+            z[i] = sampleSingleZ(pCurrent.row(i).t());
         } else {
             if (y[i] == 0) {
                 z[i] = 1;
             } else {
-                double p2 = 0;
-                double p3 = 0;
-                if (boundLowerDistribution.isInSupport(y[i])) {
-                    p2 = pCurrent(i, 0) * boundLowerDistribution.pdf(y[i]);
-                }
-                if (boundUpperDistribution.isInSupport(y[i])) {
-                    p3 = pCurrent(i, 1) * boundUpperDistribution.pdf(y[i]);
+                p.fill(0);
+                for (unsigned int k = 0; k < p.n_elem; ++k) {
+                    if (distributions[k].isInSupport(y[i])) {
+                        p[k] = pCurrent(i, k) * distributions[k].pdf(y[i]);
+                    }
                 }
 
-                double u = R::runif(0, p2 + p3);
-                if (u < p2) {
-                    z[i] = 2;
-                } else {
-                    z[i] = 3;
+                double u = rng.randu() * arma::sum(p);
+                for (unsigned int k = 0; k < p.n_elem; ++k) {
+                    if (u < p[k]) {
+                        z[i] = k + 2;
+                        break;
+                    }
+                    u -= p[k];
                 }
             }
         }
     }
 
     return z;
+}
+
+// [[Rcpp::export(name=".levels_to_list_integer_vector")]]
+List levelsToListIntegerVector(IntegerVector x, IntegerVector xLevels) {
+    std::set<int> levels(xLevels.begin(), xLevels.end());
+    std::map<int, int> levelToListIndex;
+    std::vector< std::vector<int> > output;
+
+    for (int level : levels) {
+        levelToListIndex[level] = output.size();
+        output.push_back(std::vector<int>());
+    }
+
+    for (unsigned int i = 0; i < x.length(); ++i) {
+        output[levelToListIndex[xLevels[i]]].push_back(x[i]);
+    }
+
+    return Rcpp::wrap(output);
+}
+
+// [[Rcpp::export(name=".levels_to_list_numeric_vector")]]
+List levelsToListNumericVector(NumericVector x, IntegerVector xLevels) {
+    std::set<int> levels(xLevels.begin(), xLevels.end());
+    std::map<int, int> levelToListIndex;
+    std::vector< std::vector<double> > output;
+
+    for (int level : levels) {
+        levelToListIndex[level] = output.size();
+        output.push_back(std::vector<double>());
+    }
+
+    for (unsigned int i = 0; i < x.length(); ++i) {
+        output[levelToListIndex[xLevels[i]]].push_back(x[i]);
+    }
+
+    return Rcpp::wrap(output);
+}
+
+// [[Rcpp::export(name=".levels_to_list_numeric_matrix")]]
+List levelsToListNumericMatrix(NumericMatrix x, IntegerVector xLevels) {
+    std::map<int, int> levels;
+    std::map<int, int> levelToListIndex;
+    List output;
+
+    for (unsigned int i = 0; i < xLevels.length(); ++i) {
+        if (levels.find(xLevels[i]) == levels.end()) {
+            levels[xLevels[i]] = 0;
+        }
+        levels[xLevels[i]]++;
+    }
+
+    for (std::pair<int, int> level : levels) {
+        levelToListIndex[level.first] = output.size();
+        output.push_back(NumericMatrix(level.second, x.ncol()));
+
+        // Set the level to 0 to be used as a row counter
+        levels[level.first] = 0;
+    }
+
+    for (int i = 0; i < x.nrow(); ++i) {
+        int level = xLevels[i];
+        Rcpp::as<NumericMatrix>(output[levelToListIndex[level]]).row(levels[level]) = x.row(i);
+        ++levels[level];
+    }
+
+    return output;
 }

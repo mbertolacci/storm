@@ -1,11 +1,13 @@
-#include <chrono>
 #include <RcppArmadillo.h>
 #include <vector>
 
 #include "distribution.hpp"
 #include "parameter-sampler.hpp"
-#include "rgamma-thread-safe.hpp"
+#include "rng.hpp"
 #include "utils.hpp"
+#include "progress.hpp"
+
+#include "independent-sampler.hpp"
 
 using arma::colvec;
 using arma::mat;
@@ -21,6 +23,9 @@ using Rcpp::Rcout;
 using Rcpp::StringVector;
 using Rcpp::wrap;
 
+using ptsm::RNG;
+using ptsm::rng;
+
 colvec sampleP(ucolvec zCurrent, colvec pPrior) {
     colvec p(pPrior.n_elem);
     colvec n(pPrior.n_elem, arma::fill::zeros);
@@ -31,7 +36,7 @@ colvec sampleP(ucolvec zCurrent, colvec pPrior) {
 
     double sum = 0;
     for (unsigned int j = 0; j < p.n_elem; ++j) {
-        p[j] = rgammaThreadSafe(pPrior[j] + n[j], 1);
+        p[j] = rng.randg(pPrior[j] + n[j], 1);
         sum += p[j];
     }
     for (unsigned int j = 0; j < p.n_elem; ++j) {
@@ -46,17 +51,22 @@ List independentSample(
     unsigned int nSamples, unsigned int burnIn,
     NumericVector yR,
     StringVector distributionNames, List priors, List samplingSchemes,
-    IntegerVector zStart, List thetaStart,
-    int thetaSampleThinning = 1, int zSampleThinning = 0, int yMissingSampleThinning = 0,
-    unsigned int verbose = 0
+    IntegerVector zStart, List distributionsStart,
+    unsigned int distributionSampleThinning = 1, unsigned int pSampleThinning = 1,
+    unsigned int zSampleThinning = 0, unsigned int yMissingSampleThinning = 0,
+    bool progress = false
 ) {
+    RNG::initialise();
+
     unsigned int nIterations = nSamples + burnIn;
 
     // Priors and samplers
     Distribution lowerDistribution(distributionNames[0]);
     Distribution upperDistribution(distributionNames[1]);
-    ParameterSampler lowerSampler(priors[0], samplingSchemes[0], lowerDistribution);
-    ParameterSampler upperSampler(priors[1], samplingSchemes[1], upperDistribution);
+    List distributionPriors = priors["distributions"];
+    List distributionSamplingSchemes = samplingSchemes["distributions"];
+    ParameterSampler lowerSampler(distributionPriors[0], distributionSamplingSchemes[0], lowerDistribution);
+    ParameterSampler upperSampler(distributionPriors[1], distributionSamplingSchemes[1], upperDistribution);
 
     colvec pPrior = as<colvec>(priors["p"]);
 
@@ -70,40 +80,49 @@ List independentSample(
 
     // Starting values for parameters
     ucolvec zCurrent = as<ucolvec>(zStart);
-    colvec thetaLower = as<colvec>(thetaStart[0]);
-    colvec thetaUpper = as<colvec>(thetaStart[1]);
+    colvec thetaLower = as<colvec>(distributionsStart[0]);
+    colvec thetaUpper = as<colvec>(distributionsStart[1]);
     colvec pCurrent(3);
     mat pCurrentGivenZ(y.n_elem, 2);
 
     // Samples for output
-    mat thetaSample;
-    if (thetaSampleThinning > 0) {
-        thetaSample = mat(
-            ceil(static_cast<double>(nSamples) / static_cast<double>(thetaSampleThinning)),
-            thetaLower.n_elem + thetaUpper.n_elem + 3
+    mat lowerSample;
+    mat upperSample;
+    if (distributionSampleThinning > 0) {
+        unsigned int nDistributionSamples = ceil(
+            static_cast<double>(nSamples) / static_cast<double>(distributionSampleThinning)
         );
+        lowerSample = mat(nDistributionSamples, thetaLower.n_elem);
+        upperSample = mat(nDistributionSamples, thetaUpper.n_elem);
+    }
+    mat pSample;
+    if (pSampleThinning > 0) {
+        unsigned int nPSamples = ceil(
+            static_cast<double>(nSamples) / static_cast<double>(pSampleThinning)
+        );
+        pSample = mat(nPSamples, 3);
     }
     umat zSample;
     if (zSampleThinning > 0) {
-        int nZSamples = ceil(static_cast<double>(nSamples) / static_cast<double>(zSampleThinning));
+        unsigned int nZSamples = ceil(static_cast<double>(nSamples) / static_cast<double>(zSampleThinning));
         zSample = umat(nZSamples, y.n_elem);
     }
     mat yMissingSample;
     if (yMissingSampleThinning > 0) {
-        int nYMissingSamples = ceil(static_cast<double>(nSamples) / static_cast<double>(yMissingSampleThinning));
+        unsigned int nYMissingSamples = ceil(static_cast<double>(nSamples) / static_cast<double>(yMissingSampleThinning));
         yMissingSample = mat(nYMissingSamples, yMissingIndices.size());
     }
 
     // Initial missing value sample
     sampleMissingY(
         y, logY, yMissingIndices, zCurrent,
-        ParameterBoundDistribution(thetaLower, lowerDistribution),
-        ParameterBoundDistribution(thetaUpper, upperDistribution)
+        {
+            ParameterBoundDistribution(thetaLower, lowerDistribution),
+            ParameterBoundDistribution(thetaUpper, upperDistribution)
+        }
     );
 
-    std::chrono::time_point<std::chrono::system_clock> startIteration, endIteration;
-    startIteration = std::chrono::system_clock::now();
-
+    ProgressBar progressBar(nIterations);
     for (unsigned int iteration = 0; iteration < nIterations; ++iteration) {
         // Sample p
         pCurrent = sampleP(zCurrent, pPrior);
@@ -119,50 +138,33 @@ List independentSample(
         pCurrentGivenZ.col(1).fill(pCurrent[2]);
         zCurrent = sampleZ(
             pCurrentGivenZ, y, yIsMissing,
-            ParameterBoundDistribution(thetaLower, lowerDistribution),
-            ParameterBoundDistribution(thetaUpper, upperDistribution)
+            {
+                ParameterBoundDistribution(thetaLower, lowerDistribution),
+                ParameterBoundDistribution(thetaUpper, upperDistribution)
+            }
         );
 
         // Sample missing values \bm{y^*}
         sampleMissingY(
             y, logY, yMissingIndices, zCurrent,
-            ParameterBoundDistribution(thetaLower, lowerDistribution),
-            ParameterBoundDistribution(thetaUpper, upperDistribution)
+            {
+                ParameterBoundDistribution(thetaLower, lowerDistribution),
+                ParameterBoundDistribution(thetaUpper, upperDistribution)
+            }
         );
-
-        if (verbose > 0 && iteration % verbose == 0) {
-            Rcout << "in " << iteration << " have "
-                << thetaLower.t() << " | "
-                << thetaUpper.t() << " | "
-                << pCurrent << "\n";
-
-            endIteration = std::chrono::system_clock::now();
-            std::chrono::duration<double> elapsed_seconds = endIteration - startIteration;
-            double timePerIteration = (1000 * elapsed_seconds.count() / verbose);
-            Rcout << "time per iteration is " << timePerIteration << "ms ";
-            Rcout << "(estimated time remaining " << ((nIterations - iteration) * timePerIteration) / 1000 << "s)\n";
-            startIteration = endIteration;
-
-            // NOTE(mgnb): checks whether the user has pressed Ctrl-C (among other things)
-            checkUserInterrupt();
-        }
-
-        if (verbose > 0 && iteration == burnIn) {
-            Rcout << "Burn in complete\n";
-            lowerSampler.printAcceptanceRatio(burnIn);
-            upperSampler.printAcceptanceRatio(burnIn);
-            lowerSampler.resetAcceptCount();
-            upperSampler.resetAcceptCount();
-        }
 
         if (iteration >= burnIn) {
             int index = iteration - burnIn;
 
-            if (thetaSampleThinning > 0 && (index % thetaSampleThinning == 0)) {
-                copyMultiple(
-                    thetaSample.begin_row(index / thetaSampleThinning),
-                    thetaLower, thetaUpper, pCurrent
-                );
+            if (distributionSampleThinning > 0 && (index % distributionSampleThinning == 0)) {
+                unsigned int sampleIndex = index / distributionSampleThinning;
+                lowerSample.row(sampleIndex) = thetaLower.t();
+                upperSample.row(sampleIndex) = thetaUpper.t();
+            }
+
+            if (pSampleThinning > 0 && (index % pSampleThinning == 0)) {
+                unsigned int sampleIndex = index / pSampleThinning;
+                pSample.row(sampleIndex) = pCurrent.t();
             }
 
             if (zSampleThinning > 0 && (index % zSampleThinning == 0)) {
@@ -173,23 +175,28 @@ List independentSample(
                 yMissingSample.row(index / yMissingSampleThinning) = y(yMissingIndices).t();
             }
         }
+
+        if (progress) {
+            ++progressBar;
+        }
     }
 
-    if (verbose > 0) {
-        lowerSampler.printAcceptanceRatio(nSamples);
-        upperSampler.printAcceptanceRatio(nSamples);
+    List sample;
+    if (distributionSampleThinning > 0) {
+        sample["lower"] = wrap(lowerSample);
+        sample["upper"] = wrap(upperSample);
     }
-
-    List results;
-    if (thetaSampleThinning > 0) {
-        results["theta_sample"] = wrap(thetaSample);
+    if (pSampleThinning > 0) {
+        sample["p"] = wrap(pSample);
     }
     if (zSampleThinning > 0) {
-        results["z_sample"] = wrap(zSample);
+        sample["z"] = wrap(zSample);
     }
     if (yMissingSampleThinning > 0) {
-        results["y_missing_sample"] = wrap(yMissingSample);
+        sample["y_missing"] = wrap(yMissingSample);
     }
+    List results;
+    results["sample"] = sample;
 
     return results;
 }

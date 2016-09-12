@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <RcppArmadillo.h>
 
+#include "gev.hpp"
+
 using Rcpp::CharacterVector;
 using Rcpp::NumericVector;
 

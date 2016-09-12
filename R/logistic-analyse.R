@@ -1,52 +1,24 @@
-#' Take a wide format theta_samples and perform a melt-like operation on it to split it into a delta for each level
-#' @export
-ptsm_logistic_melt_delta_samples <- function(theta_samples, levels, distributions, level_var='level') {
-    n_distribution_params <- (
-        .distribution_n_vars[[distributions[1]]] + .distribution_n_vars[[distributions[2]]]
-    )
-
-    levels <- c(sort(levels), 'family')
-    # The plus 1 below is because there are also the family variances at the end
-    n_deltas <- (ncol(theta_samples) - n_distribution_params) / (length(levels) + 1)
-
-    delta_samples <- theta_samples[, (n_distribution_params + 1) : (n_distribution_params + length(levels) * n_deltas)]
-
-    delta_samples_melted <- matrix(0, nrow=0, ncol=n_deltas)
-    for (level_index in 1 : length(levels)) {
-        level_delta_samples <- delta_samples[, (1 + (level_index - 1) * n_deltas) : (level_index * n_deltas)]
-        delta_samples_melted <- rbind(delta_samples_melted, level_delta_samples)
-    }
-    delta_samples_melted <- data.frame(delta_samples_melted)
-    delta_samples_melted[[level_var]] <- factor(sapply(levels, function(level) {
-        rep(level, nrow(delta_samples))
-    }))
-
-    base_colnames <- colnames(delta_samples)[1 : n_deltas]
-    colnames(delta_samples_melted) <- c(sub(':[^\\[]+', '', base_colnames), level_var)
-
-    return(delta_samples_melted[, c(n_deltas + 1, 1 : n_deltas)])
-}
-
 #' @export
 ptsm_logistic_ergodic_p <- function(
-    delta_samples, z_samples, z_levels, z0_samples, explanatory_variables, panel_variable=NA, order=1
+    delta_samples, z_samples, z_levels, z0_samples, design_matrix, panel_variable, order = 1
 ) {
     p_hat <- data.frame(
-        p1=rep(0, nrow(explanatory_variables)),
-        p2=rep(0, nrow(explanatory_variables)),
-        p3=rep(0, nrow(explanatory_variables))
+        p1 = rep(0, nrow(design_matrix)),
+        p2 = rep(0, nrow(design_matrix)),
+        p3 = rep(0, nrow(design_matrix))
     )
-    p_hat[[panel_variable]] <- explanatory_variables[[panel_variable]]
+
+    p_hat[[panel_variable]] <- design_matrix[[panel_variable]]
 
     delta_level_column <- which(colnames(delta_samples) == panel_variable)
-    explanatory_variables_level_column <- which(colnames(explanatory_variables) == panel_variable)
+    design_matrix_level_column <- which(colnames(design_matrix) == panel_variable)
 
     for (level_index in 1 : nlevels(delta_samples[[panel_variable]]))  {
         level <- levels(delta_samples[[panel_variable]])[level_index]
-        level_indices <- explanatory_variables[[panel_variable]] == level
+        level_indices <- design_matrix[[panel_variable]] == level
 
-        level_explanatory_variables <- data.matrix(
-            explanatory_variables[level_indices, -explanatory_variables_level_column]
+        level_design_matrix <- data.matrix(
+            design_matrix[level_indices, -design_matrix_level_column]
         )
         level_delta_samples <- data.matrix(
             delta_samples[delta_samples[[panel_variable]] == level, -delta_level_column]
@@ -55,41 +27,85 @@ ptsm_logistic_ergodic_p <- function(
         level_z0_samples <- z0_samples[, level_index]
 
         p_hat[level_indices, c('p1', 'p2', 'p3')] <- .ptsm_logistic_ergodic_p(
-            level_delta_samples, level_z_samples, level_z0_samples, level_explanatory_variables, order
+            level_delta_samples, level_z_samples, level_z0_samples, level_design_matrix, order
         )
     }
 
     return(p_hat)
 }
 
+.prepare_level_input <- function(delta_samples, z0_samples, design_matrix, data_levels) {
+    level_input <- list()
+    for (level_index in 1 : nlevels(data_levels))  {
+        level <- levels(data_levels)[level_index]
+        level_indices <- data_levels == level
+
+        level_input <- c(level_input, list(list(
+            design_matrix = design_matrix[level_indices, ],
+            delta = delta_samples[, , level_index, ],
+            z0 = z0_samples[, level_index]
+        )))
+    }
+
+    return(level_input)
+}
+
 #' @export
-ptsm_logistic_predicted_p <- function(delta_samples, z0_samples, explanatory_variables, panel_variable=NA, order=1) {
-    p_hat <- data.frame(
-        p1=rep(0, nrow(explanatory_variables)),
-        p2=rep(0, nrow(explanatory_variables)),
-        p3=rep(0, nrow(explanatory_variables))
-    )
-    p_hat[[panel_variable]] <- explanatory_variables[[panel_variable]]
+ptsm_logistic_predicted_p <- function(delta_samples, z0_samples, design_matrix, data_levels = NULL, order = 1) {
+    if (is.null(data_levels)) {
+        data_levels <- as.factor(rep('dummy', nrow(design_matrix)))
+        dim(delta_samples) <- c(dim(delta_samples)[1], dim(delta_samples)[2], 1, dim(delta_samples)[3])
+        z0_samples <- as.matrix(z0_samples)
+    }
 
-    delta_level_column <- which(colnames(delta_samples) == panel_variable)
-    explanatory_variables_level_column <- which(colnames(explanatory_variables) == panel_variable)
+    stopifnot(length(dim(delta_samples)) == 4)
+    stopifnot(dim(delta_samples)[3] == nlevels(data_levels))
 
-    for (level_index in 1 : nlevels(delta_samples[[panel_variable]]))  {
-        level <- levels(delta_samples[[panel_variable]])[level_index]
-        level_indices <- explanatory_variables[[panel_variable]] == level
+    stopifnot(length(dim(z0_samples)) == 2)
+    stopifnot(ncol(z0_samples) == nlevels(data_levels))
 
-        level_explanatory_variables <- data.matrix(
-            explanatory_variables[level_indices, -explanatory_variables_level_column]
-        )
-        level_delta_samples <- data.matrix(
-            delta_samples[delta_samples[[panel_variable]] == level, -delta_level_column]
-        )
-        level_z0_samples <- z0_samples[, level_index]
+    level_input <- .prepare_level_input(delta_samples, z0_samples, design_matrix, data_levels)
+    p_results <- .ptsm_logistic_predicted_p(level_input, order)
 
-        p_hat[level_indices, c('p1', 'p2', 'p3')] <- .ptsm_logistic_predicted_p(
-            level_delta_samples, level_z0_samples, level_explanatory_variables, order
-        )
+    p_mat <- matrix(0, nrow = nrow(design_matrix), ncol = dim(delta_samples)[1] + 1)
+    p_hat <- data.frame(p_mat)
+
+    for (level_index in 1 : nlevels(data_levels))  {
+        level_indices <- data_levels == levels(data_levels)[level_index]
+        p_hat[level_indices, ] <- p_results[[level_index]]
     }
 
     return(p_hat)
+}
+
+#' @export
+ptsm_logistic_moments <- function(
+    distribution_samples, delta_samples, z0_samples,
+    design_matrix, condition_on_positive = FALSE, distributions = c('gamma', 'gamma'), data_levels = NULL, order = 1
+) {
+    stopifnot(identical(distributions, c('gamma', 'gamma')))
+
+    if (is.null(data_levels)) {
+        data_levels <- as.factor(rep('dummy', nrow(design_matrix)))
+        dim(delta_samples) <- c(dim(delta_samples)[1], dim(delta_samples)[2], 1, dim(delta_samples)[3])
+        z0_samples <- as.matrix(z0_samples)
+    }
+
+    stopifnot(length(dim(delta_samples)) == 4)
+    stopifnot(dim(delta_samples)[3] == nlevels(data_levels))
+
+    stopifnot(length(dim(z0_samples)) == 2)
+    stopifnot(ncol(z0_samples) == nlevels(data_levels))
+
+    level_input <- .prepare_level_input(delta_samples, z0_samples, design_matrix, data_levels)
+    moment_results <- .ptsm_logistic_moments(distribution_samples, level_input, order, condition_on_positive)
+
+    moments <- matrix(0, nrow = nrow(design_matrix), ncol = 3)
+    colnames(moments) <- c('mean', 'variance', 'skew')
+    for (level_index in 1 : nlevels(data_levels))  {
+        level_indices <- data_levels == levels(data_levels)[level_index]
+        moments[level_indices, ] <- moment_results[[level_index]]
+    }
+
+    return(moments)
 }

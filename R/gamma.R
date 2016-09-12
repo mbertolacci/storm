@@ -1,5 +1,5 @@
 #' @export
-gamma_mle <- function(y, max_iterations=100, absolute_tolerance=1e-8) {
+gamma_mle <- function(y, max_iterations = 100, absolute_tolerance = 1e-8) {
     n <- length(y)
     s <- log(sum(y) / n) - sum(log(y)) / n
 
@@ -22,5 +22,5 @@ gamma_mle <- function(y, max_iterations=100, absolute_tolerance=1e-8) {
 
     beta <- (1 / alpha_current) * sum(y) / n
 
-    return(c(alpha=alpha_current, beta=beta))
+    return(c(alpha = alpha_current, beta = beta))
 }

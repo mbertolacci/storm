@@ -7,12 +7,13 @@
 
 class ParameterSampler {
  public:
+    ParameterSampler() = default;
     ParameterSampler(Rcpp::List prior, Rcpp::List samplingScheme, Distribution distribution);
 
     void printAcceptanceRatio(int nIterations);
     void resetAcceptCount();
 
-    arma::colvec sample(const arma::colvec currentParameters, const DataBoundDistribution boundDistribution);
+    arma::colvec sample(const arma::colvec currentParameters, const DataBoundDistribution &boundDistribution);
 
  private:
     bool useMle_;

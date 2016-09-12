@@ -10,7 +10,8 @@ License: MIT + file LICENSE
 Imports:
     Rcpp (>= 0.12.0),
     RcppArmadillo,
-    coda
+    coda,
+    futile.logger
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 5.0.1
 Suggests: testthat,

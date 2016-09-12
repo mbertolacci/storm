@@ -11,14 +11,17 @@ data <- ptsm_independent_generate(
     list(c(2, 1), c(0.5, 15))
 )
 
-sample <- ptsm_independent_sample(
+results <- ptsm_independent_sample(
     n_samples=5000, burn_in=1000,
     y=c(data$y, rep(NA, 100)),
     distributions=distributions,
-    theta_sample_thinning=1, z_sample_thinning=1, y_missing_sample_thinning=1,
-    verbose=0
+    thinning=list(distributions=1, p=1, z=1, y_missing=1),
+    progress=TRUE
 )
-print(colMeans(sample$theta_sample))
+
+print(colMeans(results$sample$lower))
+print(colMeans(results$sample$upper))
+print(colMeans(results$sample$p))
 
 cat('\n--------- Gengamma / Gengamma\n')
 
@@ -35,8 +38,8 @@ sample <- ptsm_independent_sample(
     n_samples=5000, burn_in=1000,
     y=c(data$y, rep(NA, 100)),
     distributions=distributions,
-    theta_sample_thinning=1, z_sample_thinning=1, y_missing_sample_thinning=1,
-    verbose=0
+    thinning=list(distribution=1, z=1, y_missing=1),
+    progress=TRUE
 )
 
 print(colMeans(sample$theta_sample))
@@ -56,8 +59,8 @@ sample <- ptsm_independent_sample(
     n_samples=5000, burn_in=1000,
     y=c(data$y, rep(NA, 100)),
     distributions=distributions,
-    theta_sample_thinning=1, z_sample_thinning=1, y_missing_sample_thinning=1,
-    verbose=0
+    thinning=list(distribution=1, z=1, y_missing=1),
+    progress=TRUE
 )
 
 print(colMeans(sample$theta_sample))

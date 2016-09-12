@@ -31,19 +31,22 @@ mat getLogisticP(const colvec delta, const mat explanatoryVariables) {
 }
 
 mat getLogisticP(const mat delta, const mat explanatoryVariables) {
-    unsigned int nDeltas = explanatoryVariables.n_cols;
-    mat p(explanatoryVariables.n_rows, 2);
+    mat p(explanatoryVariables.n_rows, delta.n_rows);
+
+    // The extra element here always contains 0 in the last element
+    colvec componentSums(delta.n_rows + 1, arma::fill::zeros);
+    colvec componentExpDiff(delta.n_rows + 1);
 
     for (unsigned int i = 0; i < explanatoryVariables.n_rows; ++i) {
-        double lowerSum = 0;
-        double upperSum = 0;
-        for (unsigned int j = 0; j < nDeltas; ++j) {
-            lowerSum += delta.at(0, j) * explanatoryVariables.at(i, j);
-            upperSum += delta.at(1, j) * explanatoryVariables.at(i, j);
+        for (unsigned int k = 0; k < delta.n_rows; ++k) {
+            componentSums[k] = arma::dot(delta.row(k), explanatoryVariables.row(i));
         }
-        double expDiff = exp(upperSum - lowerSum);
-        p.at(i, 0) = 1 / (1 + exp(-lowerSum) + expDiff);
-        p.at(i, 1) = 1 / (1 + exp(-upperSum) + 1 / expDiff);
+        componentExpDiff = exp(componentSums - arma::max(componentSums));
+        double denominator = arma::sum(componentExpDiff);
+
+        for (unsigned int k = 0; k < delta.n_rows; ++k) {
+            p(i, k) = componentExpDiff[k] / denominator;
+        }
     }
 
     return p;

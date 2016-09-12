@@ -1,6 +1,7 @@
 #include <RcppArmadillo.h>
 
 #include "parameter-sampler.hpp"
+#include "rng.hpp"
 
 using Rcpp::as;
 using Rcpp::List;
@@ -9,9 +10,11 @@ using Rcpp::NumericMatrix;
 using Rcpp::Rcout;
 using Rcpp::stop;
 
+using ptsm::rng;
+
 bool acceptOrReject(double currentLogDensity, double proposalLogDensity) {
     double alpha = proposalLogDensity - currentLogDensity;
-    return log(R::runif(0, 1)) < alpha;
+    return log(rng.randu()) < alpha;
 }
 
 ParameterSampler::ParameterSampler(List prior, List samplingScheme, Distribution distribution)
@@ -68,7 +71,7 @@ void ParameterSampler::resetAcceptCount() {
 }
 
 arma::colvec ParameterSampler::sample(
-    const arma::colvec currentParameters, const DataBoundDistribution boundDistribution
+    const arma::colvec currentParameters, const DataBoundDistribution &boundDistribution
 ) {
     arma::colvec proposalMean(currentParameters);
 
@@ -89,24 +92,24 @@ arma::colvec ParameterSampler::sample(
 
         try {
             negInverseHessian = (-hessian).i();
-        } catch (std::runtime_error error) {
+        } catch (std::runtime_error &error) {
             Rcout << proposalMean << "\n";
             Rcout << hessian << "\n";
-            throw error;
+            throw;
         }
 
         try {
             covarianceCholesky_ = arma::chol(observedInformationInflationFactor_ * negInverseHessian);
-        } catch (std::runtime_error error) {
+        } catch (std::runtime_error &error) {
             Rcout << proposalMean << "\n";
             Rcout << hessian << "\n";
-            throw error;
+            throw;
         }
     }
 
     while (true) {
         for (unsigned int i = 0; i < currentParameters.n_elem; ++i) {
-            unitNormals[i] = R::rnorm(0, 1);
+            unitNormals[i] = rng.randn();
         }
         proposalParameters = proposalMean + covarianceCholesky_ * unitNormals;
 
@@ -120,7 +123,7 @@ arma::colvec ParameterSampler::sample(
     double proposalLogDensity = boundDistribution.logLikelihood(proposalParameters);
 
     double alpha = proposalLogDensity - currentLogDensity;
-    if (log(R::runif(0, 1)) < alpha) {
+    if (log(rng.randu()) < alpha) {
         accept_++;
         return proposalParameters;
     }

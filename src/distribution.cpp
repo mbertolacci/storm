@@ -11,9 +11,17 @@ using arma::ucolvec;
 using Rcpp::warning;
 using Rcpp::stop;
 
-#pragma omp declare \
-    reduction(arma_mat_sum : mat : omp_out += omp_in) \
-    initializer (omp_priv(omp_orig))
+#ifdef _OPENMP
+    #if _OPENMP > 201107
+        #define OMP_SUPPORT_CUSTOM_REDUCTION
+    #endif
+#endif
+
+#ifdef OMP_SUPPORT_CUSTOM_REDUCTION
+    #pragma omp declare \
+        reduction(arma_mat_sum : mat : omp_out += omp_in) \
+        initializer (omp_priv(omp_orig))
+#endif
 
 DataBoundDistribution::DataBoundDistribution(
     colvec y, colvec logY, ucolvec z, unsigned int thisZ, Distribution distribution
@@ -25,7 +33,8 @@ DataBoundDistribution::DataBoundDistribution(
     sumY_(0),
     sumLogY_(0),
     distribution_(distribution) {
-    if (distribution_.getType() == GAMMA) {
+    switch (distribution_.getType()) {
+    case GAMMA: {
         for (unsigned int i = 0; i < y_.n_elem; ++i) {
             if (z_[i] == thisZ_) {
                 ++thisN_;
@@ -33,13 +42,33 @@ DataBoundDistribution::DataBoundDistribution(
                 sumLogY_ += logY_[i];
             }
         }
-    } else if (distribution_.getType() == GENERALISED_GAMMA) {
+        break;
+    }
+    case GENERALISED_GAMMA:
+    case LOG_NORMAL: {
         for (unsigned int i = 0; i < y_.n_elem; ++i) {
             if (z_[i] == thisZ_) {
                 ++thisN_;
                 sumLogY_ += logY_[i];
             }
         }
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+DataBoundDistribution::DataBoundDistribution(
+    unsigned int thisN, double sumY, double sumLogY, Distribution distribution
+)
+    : thisZ_(0),
+      thisN_(thisN),
+      sumY_(sumY),
+      sumLogY_(sumLogY),
+      distribution_(distribution) {
+    if (distribution_.getType() != GAMMA) {
+        throw std::runtime_error("summary constructor only usable with GAMMA distribution");
     }
 }
 
@@ -47,19 +76,19 @@ double DataBoundDistribution::logLikelihood(colvec parameters) const {
     switch (distribution_.getType()) {
     case GAMMA: {
         if (thisN_ == 0) return -DBL_MAX;
+        double n = static_cast<double>(thisN_);
         return (
-            - thisN_ * parameters[0] * log(parameters[1])
-            - thisN_ * lgamma(parameters[0])
+            - n * parameters[0] * log(parameters[1])
+            - n * lgamma(parameters[0])
             + (parameters[0] - 1) * sumLogY_
             - sumY_ / parameters[1]
         );
-        break;
     }
     case GEV: {
         double logDensity = 0;
         bool hadData = false;
 
-        #pragma omp parallel for simd reduction(+:logDensity)
+        #pragma omp parallel for reduction(+:logDensity)
         for (unsigned int i = 0; i < y_.n_elem; ++i) {
             if (z_[i] == thisZ_) {
                 hadData = true;
@@ -70,7 +99,6 @@ double DataBoundDistribution::logLikelihood(colvec parameters) const {
             return -DBL_MAX;
         }
         return logDensity;
-        break;
     }
     case GENERALISED_GAMMA: {
         double mu = parameters[0];
@@ -79,7 +107,7 @@ double DataBoundDistribution::logLikelihood(colvec parameters) const {
 
         if (Q == 0) {
             double sum = 0;
-            #pragma omp parallel for simd reduction(+:sum)
+            #pragma omp parallel for reduction(+:sum)
             for (unsigned int i = 0; i < logY_.n_elem; ++i) {
                 if (z_[i] == thisZ_) {
                     double t = logY_[i] - mu;
@@ -99,7 +127,7 @@ double DataBoundDistribution::logLikelihood(colvec parameters) const {
             double invQSquared = 1 / (Q * Q);
 
             double expSum = 0;
-            #pragma omp parallel for simd reduction(+:expSum)
+            #pragma omp parallel for reduction(+:expSum)
             for (unsigned int i = 0; i < logY_.n_elem; ++i) {
                 if (z_[i] == thisZ_) {
                     expSum += exp(Q * (logY_[i] - mu) / sigma);
@@ -119,9 +147,25 @@ double DataBoundDistribution::logLikelihood(colvec parameters) const {
             );
         }
     }
+    case LOG_NORMAL: {
+        double mu = parameters[0];
+        double sigma = parameters[1];
+        double sigmaSq = sigma * sigma;
+
+        double sumSquares = 0;
+        for (unsigned int i = 0; i < logY_.n_elem; ++i) {
+            if (z_[i] == thisZ_) {
+                sumSquares += (logY_[i] - mu) * (logY_[i] - mu);
+            }
+        }
+        return(
+            - sumLogY_
+            - (thisN_ / 2) * log(2 * PI * sigmaSq)
+            - sumSquares / (2 * sigmaSq)
+        );
+    }
     default: {
         return -DBL_MAX;
-        break;
     }
     }
 }
@@ -161,9 +205,10 @@ colvec DataBoundDistribution::maximumLikelihoodEstimate(colvec start) const {
 
     switch (distribution_.getType()) {
     case GAMMA: {
-        double s = log(sumY_ / static_cast<double>(thisN_)) - sumLogY_ / static_cast<double>(thisN_);
+        double n = static_cast<double>(thisN_);
+        double s = log(sumY_ / n) - sumLogY_ / n;
         double alpha = (3 - s + sqrt((s - 3) * (s - 3) + 24 * s)) / (12 * s);
-        double alphaOld;
+        double alphaOld = 0;
         int maxIterations = 100;
         int i = 0;
         while (true) {
@@ -174,13 +219,14 @@ colvec DataBoundDistribution::maximumLikelihoodEstimate(colvec start) const {
             }
             ++i;
             if (i >= maxIterations) {
-                break;
+                warning("maximumLikelihoodEstimate failed for gamma");
+                return start;
             }
         }
 
         parameters = colvec(2);
         parameters[0] = alpha;
-        parameters[1] = sumY_ / (alpha * thisN_);
+        parameters[1] = sumY_ / (alpha * n);
         break;
     }
     case GENERALISED_GAMMA: {
@@ -246,6 +292,19 @@ colvec DataBoundDistribution::maximumLikelihoodEstimate(colvec start) const {
 
         break;
     }
+    case LOG_NORMAL: {
+        parameters = colvec(2);
+        parameters[0] = sumLogY_ / thisN_;
+
+        double sumSquares = 0;
+        for (unsigned int i = 0; i < logY_.n_elem; ++i) {
+            if (z_[i] == thisZ_) {
+                sumSquares += (logY_[i] - parameters[0]) * (logY_[i] - parameters[0]);
+            }
+        }
+        parameters[1] = sqrt(sumSquares / thisN_);
+        break;
+    }
     default:
         stop("Cannot call maximumLikelihoodEstimate for %s", distribution_.getName());
     }
@@ -263,10 +322,11 @@ mat DataBoundDistribution::hessian(colvec parameters) const {
         double beta = parameters[1];
         double betaSq = beta * beta;
         double betaCb = beta * beta * beta;
+        double n = static_cast<double>(thisN_);
 
-        hessian(0, 0) = -thisN_ * R::trigamma(alpha);
-        hessian(0, 1) = -thisN_ / beta;
-        hessian(1, 1) = thisN_ * alpha / betaSq - (2 / betaCb) * sumY_;
+        hessian(0, 0) = -n * R::trigamma(alpha);
+        hessian(0, 1) = -n / beta;
+        hessian(1, 1) = n * alpha / betaSq - (2 / betaCb) * sumY_;
 
         break;
     }
@@ -284,7 +344,9 @@ mat DataBoundDistribution::hessian(colvec parameters) const {
         double tMuSigma = xi / sigmaSq;
         double tMuXi = -1 / sigma;
 
-        #pragma omp parallel for simd reduction(arma_mat_sum:hessian)
+        #ifdef OMP_SUPPORT_CUSTOM_REDUCTION
+            #pragma omp parallel for reduction(arma_mat_sum:hessian)
+        #endif
         for (unsigned int i = 0; i < y_.n_elem; ++i) {
             if (z_[i] == thisZ_) {
                 double t = 1 + xi * (y_[i] - mu) / sigma;
@@ -360,7 +422,7 @@ mat DataBoundDistribution::hessian(colvec parameters) const {
         double sumWExpQW = 0;
         double sumWSquaredExpQW = 0;
 
-        #pragma omp parallel for simd reduction(+:sumExpQW, sumWExpQW, sumWSquaredExpQW)
+        #pragma omp parallel for reduction(+:sumExpQW, sumWExpQW, sumWSquaredExpQW)
         for (unsigned int i = 0; i < y_.n_elem; ++i) {
             if (z_[i] == thisZ_) {
                 double w = (logY_[i] - mu) / sigma;

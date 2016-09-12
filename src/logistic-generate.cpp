@@ -1,6 +1,7 @@
 #include <RcppArmadillo.h>
 
 #include "distribution.hpp"
+#include "rng.hpp"
 
 using arma::colvec;
 using arma::conv_to;
@@ -16,22 +17,24 @@ using Rcpp::StringVector;
 using Rcpp::stop;
 using Rcpp::wrap;
 
+using ptsm::RNG;
+
 typedef struct {
     colvec y;
     ucolvec z;
 } LogisticSample;
 
 LogisticSample generate(
-    colvec delta, mat explanatoryVariables,
-    ParameterBoundDistribution lowerDistribution, ParameterBoundDistribution upperDistribution,
-    unsigned int order
+    const mat delta, const mat explanatoryVariables,
+    const std::vector<ParameterBoundDistribution> distributions, unsigned int order
 ) {
     LogisticSample sample;
     sample.y = colvec(explanatoryVariables.n_rows);
     sample.z = ucolvec(explanatoryVariables.n_rows);
 
     unsigned int nExplanatoryVariables = explanatoryVariables.n_cols;
-    unsigned int nDeltas = delta.n_elem / 2;
+    unsigned int nDeltas = delta.n_cols;
+    unsigned int nComponents = distributions.size();
 
     ucolvec previousZs;
     if (order > 0) {
@@ -39,37 +42,42 @@ LogisticSample generate(
         previousZs.fill(1);
     }
 
-    colvec deltaLower = delta.head(nDeltas);
-    colvec deltaUpper = delta.tail(nDeltas);
+    colvec componentSums(nComponents + 1, arma::fill::zeros);
 
     for (unsigned int i = 0; i < explanatoryVariables.n_rows; ++i) {
-        double lowerSum = dot(deltaLower.head(nExplanatoryVariables), explanatoryVariables.row(i));
-        double upperSum = dot(deltaUpper.head(nExplanatoryVariables), explanatoryVariables.row(i));
+        for (unsigned int k = 0; k < nComponents; ++k) {
+            componentSums[k] = dot(
+                delta.row(k).head(nExplanatoryVariables),
+                explanatoryVariables.row(i)
+            );
 
-        for (unsigned int j = 0; j < order; ++j) {
-            if (previousZs[j] == 2) {
-                lowerSum += deltaLower[nDeltas - 2 * j - 2];
-                upperSum += deltaUpper[nDeltas - 2 * j - 2];
-            } else if (previousZs[j] == 3) {
-                lowerSum += deltaLower[nDeltas - 2 * j - 1];
-                upperSum += deltaUpper[nDeltas - 2 * j - 1];
+            for (unsigned int j = 0; j < order; ++j) {
+                if (previousZs[j] == 1) continue;
+
+                unsigned int previousComponent = previousZs[j] - 2;
+                componentSums[k] += delta(
+                    k,
+                    nDeltas - nComponents * j + previousComponent - nComponents
+                );
             }
         }
 
-        double expDiff = exp(upperSum - lowerSum);
-        double pLower = 1 / (1 + exp(-lowerSum) + expDiff);
-        double pUpper = 1 / (1 + exp(-upperSum) + 1 / expDiff);
+        colvec componentExpDiff = exp(componentSums - arma::max(componentSums));
+        double denominator = arma::sum(componentExpDiff);
 
-        double u = R::runif(0, 1);
-        if (u < pLower) {
-            sample.z[i] = 2;
-            sample.y[i] = lowerDistribution.sample();
-        } else if (u < pLower + pUpper) {
-            sample.z[i] = 3;
-            sample.y[i] = upperDistribution.sample();
-        } else {
-            sample.z[i] = 1;
-            sample.y[i] = 0;
+        double u = rng.randu();
+
+        sample.z[i] = 1;
+        sample.y[i] = 0;
+        for (unsigned int k = 0; k < nComponents; ++k) {
+            double p = componentExpDiff[k] / denominator;
+            // NOTE(mgnb): if none of these comparisons match, we leave z == 1
+            if (u < p) {
+                sample.z[i] = k + 2;
+                sample.y[i] = distributions[k].sample();
+                break;
+            }
+            u -= p;
         }
 
         if (order > 0) {
@@ -87,20 +95,25 @@ LogisticSample generate(
 // [[Rcpp::export(name=".ptsm_logistic_generate")]]
 List logisticGenerate(
     NumericMatrix deltaR, NumericMatrix explanatoryVariablesR,
-    NumericVector thetaLower, NumericVector thetaUpper, StringVector distributionNames,
+    List distributionParameters, StringVector distributionNames,
     unsigned int order
 ) {
-    Distribution lowerDistribution(distributionNames[0]);
-    Distribution upperDistribution(distributionNames[1]);
+    RNG::initialise();
+
+    std::vector<ParameterBoundDistribution> distributions;
+    for (unsigned int k = 0; k < distributionNames.length(); ++k) {
+        distributions.push_back(ParameterBoundDistribution(
+            as<colvec>(distributionParameters[k]),
+            Distribution(distributionNames[k])
+        ));
+    }
 
     mat explanatoryVariables = as<mat>(explanatoryVariablesR);
     mat delta = as<mat>(deltaR);
 
     LogisticSample result = generate(
-        conv_to<colvec>::from(vectorise(delta, 1).t()), explanatoryVariables,
-        ParameterBoundDistribution(as<colvec>(thetaLower), lowerDistribution),
-        ParameterBoundDistribution(as<colvec>(thetaUpper), upperDistribution),
-        order
+        delta, explanatoryVariables,
+        distributions, order
     );
 
     List output;

@@ -11,15 +11,15 @@ MissingValuesPair findMissingValues(Rcpp::NumericVector y);
 
 void sampleMissingY(
     arma::colvec &y, arma::colvec &logY, const arma::ucolvec yMissingIndices, const arma::ucolvec zCurrent,
-    const ParameterBoundDistribution boundLowerDistribution, const ParameterBoundDistribution boundUpperDistribution
+    const std::vector<ParameterBoundDistribution> distributions
 );
 
-int sampleSingleZ(double pLower, double pUpper);
+unsigned int sampleSingleZ(const arma::colvec p);
 
 arma::ucolvec sampleZ(
     const arma::mat pCurrent,
-    const arma::colvec y, const std::vector<bool> yIsMissing,
-    const ParameterBoundDistribution boundLowerDistribution, const ParameterBoundDistribution boundUpperDistribution
+    const arma::colvec y, const std::vector<bool> &yIsMissing,
+    const std::vector<ParameterBoundDistribution> distributions
 );
 
 // Base case, once all arguments are consumed

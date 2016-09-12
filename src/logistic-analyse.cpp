@@ -1,21 +1,27 @@
 #include <RcppArmadillo.h>
 #include "logistic-utils.hpp"
+#include "utils.hpp"
 
 using arma::colvec;
 using arma::conv_to;
+using arma::cube;
+using arma::field;
 using arma::mat;
+using arma::rowvec;
 using arma::ucolvec;
 
 using Rcpp::as;
 using Rcpp::IntegerVector;
+using Rcpp::List;
 using Rcpp::NumericMatrix;
+using Rcpp::NumericVector;
 using Rcpp::stop;
 using Rcpp::wrap;
 
 // [[Rcpp::export(name=".ptsm_logistic_ergodic_p")]]
 NumericMatrix logisticErgodicP(
     NumericMatrix deltaSamplesR, NumericMatrix zSamplesR, IntegerVector z0SamplesR,
-    NumericMatrix explanatoryVariablesR, unsigned int order
+    NumericMatrix designMatrixR, unsigned int order
 ) {
     mat deltaSamples = as<mat>(deltaSamplesR);
     mat zSamples = as<mat>(zSamplesR);
@@ -28,31 +34,31 @@ NumericMatrix logisticErgodicP(
         stop("Only order 1 supported");
     }
 
-    mat explanatoryVariables = as<mat>(explanatoryVariablesR);
+    mat designMatrix = as<mat>(designMatrixR);
     // Make room for the z's
-    explanatoryVariables.resize(explanatoryVariables.n_rows, explanatoryVariables.n_cols + 2 * order);
+    designMatrix.resize(designMatrix.n_rows, designMatrix.n_cols + 2 * order);
 
-    mat pHat(explanatoryVariables.n_rows, 2, arma::fill::zeros);
+    mat pHat(designMatrix.n_rows, 2, arma::fill::zeros);
     unsigned int nDeltas = deltaSamples.n_cols / 2;
 
     #pragma omp parallel for
     for (unsigned int sample = 0; sample < deltaSamples.n_rows; ++sample) {
-        explanatoryVariables(0, nDeltas - 2) = z0Samples[sample] == 2;
-        explanatoryVariables(0, nDeltas - 1) = z0Samples[sample] == 3;
+        designMatrix(0, nDeltas - 2) = z0Samples[sample] == 2;
+        designMatrix(0, nDeltas - 1) = z0Samples[sample] == 3;
         for (unsigned int i = 0; i < zSamples.n_cols - 1; ++i) {
-            explanatoryVariables(i + 1, nDeltas - 2) = zSamples(sample, i) == 2;
-            explanatoryVariables(i + 1, nDeltas - 1) = zSamples(sample, i) == 3;
+            designMatrix(i + 1, nDeltas - 2) = zSamples(sample, i) == 2;
+            designMatrix(i + 1, nDeltas - 1) = zSamples(sample, i) == 3;
         }
 
         pHat += getLogisticP(
             conv_to<colvec>::from(deltaSamples.row(sample)),
-            explanatoryVariables
+            designMatrix
         );
     }
 
     pHat /= static_cast<double>(deltaSamples.n_rows);
 
-    mat pHatOut(explanatoryVariables.n_rows, 3);
+    mat pHatOut(designMatrix.n_rows, 3);
     pHatOut.col(0) = 1 - pHat.col(0) - pHat.col(1);
     pHatOut.col(1) = pHat.col(0);
     pHatOut.col(2) = pHat.col(1);
@@ -60,70 +66,177 @@ NumericMatrix logisticErgodicP(
     return wrap(pHatOut);
 }
 
-// [[Rcpp::export(name=".ptsm_logistic_predicted_p")]]
-NumericMatrix logisticPredictedP(
-    NumericMatrix deltaSamplesR, IntegerVector z0SamplesR, NumericMatrix explanatoryVariablesR, unsigned int order
-) {
-    mat deltaSamples = trans(as<mat>(deltaSamplesR));
-    mat explanatoryVariables = as<mat>(explanatoryVariablesR);
-    ucolvec z0Samples = as<ucolvec>(z0SamplesR);
-    mat pHat(explanatoryVariables.n_rows, 3, arma::fill::zeros);
-    unsigned int nDeltas = deltaSamples.n_rows / 2;
+class PredictedPGenerator {
+ public:
+    explicit PredictedPGenerator(const mat delta, const mat designMatrix, unsigned int z0)
+        : delta_(delta),
+          designMatrix_(designMatrix),
+          currentIndex_(0) {
+        previousP_.set_size(delta.n_rows + 1);
+        previousP_.zeros();
 
-    for (unsigned int sampleIndex = 0; sampleIndex < deltaSamples.n_rows; ++sampleIndex) {
-        colvec delta = deltaSamples.col(sampleIndex);
-        colvec deltaLower = delta.head(nDeltas);
-        colvec deltaUpper = delta.tail(nDeltas);
+        previousP_[z0 - 1] = 1;
+    }
 
-        double prevP1 = 0;
-        double prevP2 = 0;
-        double prevP3 = 0;
-        if (z0Samples[sampleIndex] == 1) {
-            prevP1 = 1;
-        } else if (z0Samples[sampleIndex] == 2) {
-            prevP2 = 1;
-        } else if (z0Samples[sampleIndex] == 3) {
-            prevP3 = 1;
+    colvec getNext() {
+        unsigned int nComponents = delta_.n_rows + 1;
+
+        // Indices are [from, to]
+        mat pTransition(nComponents, nComponents, arma::fill::zeros);
+        for (unsigned int k = 0; k < nComponents; ++k) {
+            if (k == 0) continue;
+
+            double sum = arma::dot(
+                delta_.row(k - 1).head(delta_.n_cols - nComponents + 1),
+                designMatrix_.row(currentIndex_)
+            );
+
+            for (unsigned int kk = 0; kk < nComponents; ++kk) {
+                if (kk == 0) {
+                    pTransition(kk, k) = sum;
+                } else {
+                    pTransition(kk, k) = sum + delta_(k - 1, delta_.n_cols + kk - 1 - delta_.n_rows);
+                }
+            }
+        }
+        pTransition = exp(pTransition - pTransition.max());
+        for (unsigned int k = 0; k < nComponents; ++k) {
+            pTransition.row(k) /= arma::sum(pTransition.row(k));
         }
 
-        for (unsigned int i = 0; i < explanatoryVariables.n_rows; ++i) {
-            double lowerSum = dot(deltaLower.head(nDeltas - 2), explanatoryVariables.row(i));
-            double upperSum = dot(deltaUpper.head(nDeltas - 2), explanatoryVariables.row(i));
+        colvec output(nComponents);
+        for (unsigned int k = 0; k < nComponents; ++k) {
+            output[k] = arma::dot(previousP_, pTransition.col(k));
+        }
 
-            double exp21 = exp(lowerSum);
-            double exp22 = exp(lowerSum + deltaLower[nDeltas - 2]);
-            double exp23 = exp(lowerSum + deltaLower[nDeltas - 1]);
-            double exp31 = exp(upperSum);
-            double exp32 = exp(upperSum + deltaUpper[nDeltas - 2]);
-            double exp33 = exp(upperSum + deltaUpper[nDeltas - 1]);
+        previousP_ = output;
+        currentIndex_++;
 
-            double p11 = 1 / (1 + exp21 + exp31);
-            double p12 = 1 / (1 + exp22 + exp32);
-            double p13 = 1 / (1 + exp23 + exp33);
+        return output;
+    }
 
-            double p21 = exp21 / (1 + exp21 + exp31);
-            double p22 = exp22 / (1 + exp22 + exp32);
-            double p23 = exp23 / (1 + exp23 + exp33);
+ private:
+    const mat delta_;
+    const mat designMatrix_;
 
-            double p31 = exp31 / (1 + exp21 + exp31);
-            double p32 = exp32 / (1 + exp22 + exp32);
-            double p33 = exp33 / (1 + exp23 + exp33);
+    colvec previousP_;
+    unsigned int currentIndex_;
+};
 
-            double p1 = p11 * prevP1 + p12 * prevP2 + p13 * prevP3;
-            double p2 = p21 * prevP1 + p22 * prevP2 + p23 * prevP3;
-            double p3 = p31 * prevP1 + p32 * prevP2 + p33 * prevP3;
+mat logisticPredictedPLevel(
+    const cube deltaSamples, const ucolvec z0Samples, const mat designMatrix, unsigned int order
+) {
+    mat pHat(designMatrix.n_rows, deltaSamples.n_rows + 1, arma::fill::zeros);
 
-            pHat(i, 0) += p1;
-            pHat(i, 1) += p2;
-            pHat(i, 2) += p3;
+    for (unsigned int sampleIndex = 0; sampleIndex < deltaSamples.n_slices; ++sampleIndex) {
+        PredictedPGenerator pGenerator = PredictedPGenerator(
+            deltaSamples.slice(sampleIndex), designMatrix, z0Samples[sampleIndex]
+        );
 
-            prevP1 = p1;
-            prevP2 = p2;
-            prevP3 = p3;
+        for (unsigned int i = 0; i < designMatrix.n_rows; ++i) {
+            pHat.row(i) += pGenerator.getNext().t();
         }
     }
 
-    pHat /= static_cast<double>(deltaSamples.n_rows);
+    return pHat / static_cast<double>(deltaSamples.n_slices);
+}
 
-    return wrap(pHat);
+// [[Rcpp::export(name=".ptsm_logistic_predicted_p")]]
+List logisticPredictedP(
+    List levels, unsigned int order
+) {
+    field<cube> panelDelta(levels.length());
+    field<ucolvec> panelZ0(levels.length());
+    field<mat> panelDesignMatrix(levels.length());
+
+    for (unsigned int levelIndex = 0; levelIndex < levels.length(); ++levelIndex) {
+        List level = levels[levelIndex];
+        panelDelta[levelIndex] = as<cube>(level["delta"]);
+        panelZ0[levelIndex] = as<ucolvec>(level["z0"]);
+        panelDesignMatrix[levelIndex] = as<mat>(level["design_matrix"]);
+    }
+
+    field<mat> results(levels.length());
+
+    #pragma omp parallel for
+    for (unsigned int levelIndex = 0; levelIndex < levels.length(); ++levelIndex) {
+        results[levelIndex] = logisticPredictedPLevel(
+            panelDelta[levelIndex], panelZ0[levelIndex], panelDesignMatrix[levelIndex], order
+        );
+    }
+
+    return listFromField(results);
+}
+
+mat logisticMomentsLevel(
+    const field<mat> distributionSamples, const cube deltaSamples, const ucolvec z0Samples,
+    const mat designMatrix, unsigned int order, bool conditionOnPositive
+) {
+    // Output
+    mat moments(designMatrix.n_rows, 3, arma::fill::zeros);
+    unsigned int nComponents = distributionSamples.n_elem;
+
+    for (unsigned int sampleIndex = 0; sampleIndex < deltaSamples.n_slices; ++sampleIndex) {
+        PredictedPGenerator pGenerator = PredictedPGenerator(
+            deltaSamples.slice(sampleIndex), designMatrix, z0Samples[sampleIndex]
+        );
+
+        for (unsigned int i = 0; i < designMatrix.n_rows; ++i) {
+            colvec p = pGenerator.getNext();
+
+            if (conditionOnPositive) {
+                double pPositive = arma::sum(p) - p[0];
+                p /= pPositive;
+            }
+
+            colvec means(nComponents);
+            colvec variances(nComponents);
+            colvec skews(nComponents);
+
+            for (unsigned int k = 0; k < nComponents; ++k) {
+                double alpha = distributionSamples[k](sampleIndex, 0);
+                double beta = distributionSamples[k](sampleIndex, 1);
+                means[k] = p[k + 1] * alpha * beta;
+                variances[k] = p[k + 1] * p[k + 1] * alpha * beta * beta;
+                skews[k] = 2 / sqrt(alpha);
+            }
+
+            moments(i, 0) += arma::sum(means);
+            moments(i, 1) += sqrt(arma::sum(variances));
+            moments(i, 2) += (
+                arma::dot(skews, variances % sqrt(variances))
+                / (moments(i, 1) * moments(i, 1) * moments(i, 1))
+            );
+        }
+    }
+
+    return moments / static_cast<double>(deltaSamples.n_slices);
+}
+
+// [[Rcpp::export(name=".ptsm_logistic_moments")]]
+List logisticMoments(List distributionSamplesR, List levels, unsigned int order, bool conditionOnPositive) {
+    field<mat> distributionSamples = fieldFromList<mat>(distributionSamplesR);
+    field<cube> panelDelta(levels.length());
+    field<ucolvec> panelZ0(levels.length());
+    field<mat> panelDesignMatrix(levels.length());
+
+    for (unsigned int levelIndex = 0; levelIndex < levels.length(); ++levelIndex) {
+        List level = levels[levelIndex];
+        panelDelta[levelIndex] = as<cube>(level["delta"]);
+        panelZ0[levelIndex] = as<ucolvec>(level["z0"]);
+        panelDesignMatrix[levelIndex] = as<mat>(level["design_matrix"]);
+    }
+
+    field<mat> results(levels.length());
+
+    #pragma omp parallel for
+    for (unsigned int levelIndex = 0; levelIndex < levels.length(); ++levelIndex) {
+        results[levelIndex] = logisticMomentsLevel(
+            distributionSamples,
+            panelDelta[levelIndex], panelZ0[levelIndex], panelDesignMatrix[levelIndex],
+            order, conditionOnPositive
+        );
+    }
+
+    return listFromField(results);
 }

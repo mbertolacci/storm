@@ -1,7 +1,7 @@
 #' @export
-dgengamma <- function(x, mu, sigma, Q, log=FALSE) {
+dgengamma <- function(x, mu, sigma, Q, log = FALSE) {
     if (Q == 0) {
-        log_density <- dlnorm(x, mu, sigma, log=TRUE)
+        log_density <- dlnorm(x, mu, sigma, log = TRUE)
     } else {
         w <- (log(x) - mu) / sigma
 
@@ -73,7 +73,7 @@ gengamma_llhessian <- function(x, mu, sigma, Q) {
     sum_w_exp_Qw <- sum(w * exp(Q * w))
     sum_w_squared_exp_Qw <- sum(w ^ 2 * exp(Q * w))
 
-    hessian <- matrix(0, nrow=3, ncol=3)
+    hessian <- matrix(0, nrow = 3, ncol = 3)
     hessian[1, 1] <- -sum_exp_Qw / (sigma ^ 2)
     hessian[1, 2] <- n / (sigma ^ 2 * Q) - sum_exp_Qw / (sigma ^ 2 * Q) - sum_w_exp_Qw / (sigma ^ 2)
     hessian[1, 3] <- n / (sigma * Q ^ 2) - sum_exp_Qw / (sigma * Q ^ 2) + sum_w_exp_Qw / (sigma * Q)
@@ -114,7 +114,7 @@ gengamma_llhessian <- function(x, mu, sigma, Q) {
 
 gengamma_mle <- function(y) {
     neg_log_likelihood <- function(params) {
-        -sum(dgengamma(y, params[1], exp(params[2]), params[3], log=TRUE))
+        -sum(dgengamma(y, params[1], exp(params[2]), params[3], log = TRUE))
     }
 
     neg_ll_gradient <- function(params) {
@@ -123,9 +123,9 @@ gengamma_mle <- function(y) {
 
     results <- optim(
         c(mean(y), log(sd(y)), 0.1),
-        fn=neg_log_likelihood, gr=neg_ll_gradient,
-        method='BFGS',
-        control=list(maxit=5000)
+        fn = neg_log_likelihood, gr = neg_ll_gradient,
+        method = 'BFGS',
+        control = list(maxit = 5000)
     )
     results$par[2] <- exp(results$par[2])
     names(results$par) <- c('mu', 'sigma', 'Q')
