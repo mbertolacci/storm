@@ -14,8 +14,10 @@ ptsm_independent_sample <- function(
     if (is.null(prior$distributions)) {
         prior$distributions <- .default_distributions_prior(distributions)
     }
+    n_components <- length(prior$distributions)
+
     if (is.null(prior$p)) {
-        prior$p <- c(1, 1, 1)
+        prior$p <- rep(1, n_components + 1)
     }
 
     if (is.null(sampling_scheme)) {
@@ -47,16 +49,17 @@ ptsm_independent_sample <- function(
         progress
     )
 
-    if (!is.null(results$sample[['lower']])) {
-        results$sample$lower <- coda::mcmc(results$sample$lower, start = 1, thin = thinning$distributions)
-        colnames(results$sample$lower) <- .distribution_parameter_names[[distributions[1]]]
-
-        results$sample$upper <- coda::mcmc(results$sample$upper, start = 1, thin = thinning$distributions)
-        colnames(results$sample$upper) <- .distribution_parameter_names[[distributions[2]]]
+    if (!is.null(results$sample[['distribution']])) {
+        for (k in 1 : n_components) {
+            results$sample[['distribution']][[k]] <- coda::mcmc(
+                results$sample[['distribution']][[k]], start = 1, thin = thinning$distribution
+            )
+            colnames(results$sample[['distribution']][[k]]) <- .distribution_parameter_names[[distributions[[k]]]]
+        }
     }
     if (!is.null(results$sample[['p']])) {
         results$sample$p <- coda::mcmc(results$sample$p, start = 1, thin = thinning$p)
-        colnames(results$sample$p) <- c('p1', 'p2', 'p3')
+        colnames(results$sample$p) <- paste0('p', 1 : (n_components + 1))
     }
     if (!is.null(results$sample[['z']])) {
         results$sample[['z']] <- coda::mcmc(results$sample[['z']], start = 1, thin = thinning$z)

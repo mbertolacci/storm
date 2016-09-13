@@ -10,6 +10,7 @@
 #include "independent-sampler.hpp"
 
 using arma::colvec;
+using arma::field;
 using arma::mat;
 using arma::ucolvec;
 using arma::umat;
@@ -46,6 +47,20 @@ colvec sampleP(ucolvec zCurrent, colvec pPrior) {
     return p;
 }
 
+std::vector<ParameterBoundDistribution> getParameterBoundDistributions(
+    std::vector<Distribution> distributions,
+    field<colvec> parameters
+) {
+    std::vector<ParameterBoundDistribution> output;
+    for (unsigned int k = 0; k < distributions.size(); ++k) {
+        output.push_back(ParameterBoundDistribution(
+            parameters[k],
+            distributions[k]
+        ));
+    }
+    return output;
+}
+
 // [[Rcpp::export(name=".ptsm_independent_sample")]]
 List independentSample(
     unsigned int nSamples, unsigned int burnIn,
@@ -59,15 +74,20 @@ List independentSample(
     RNG::initialise();
 
     unsigned int nIterations = nSamples + burnIn;
+    unsigned int nComponents = distributionNames.length();
 
     // Priors and samplers
-    Distribution lowerDistribution(distributionNames[0]);
-    Distribution upperDistribution(distributionNames[1]);
-    List distributionPriors = priors["distributions"];
-    List distributionSamplingSchemes = samplingSchemes["distributions"];
-    ParameterSampler lowerSampler(distributionPriors[0], distributionSamplingSchemes[0], lowerDistribution);
-    ParameterSampler upperSampler(distributionPriors[1], distributionSamplingSchemes[1], upperDistribution);
+    std::vector<Distribution> distributions;
+    std::vector<ParameterSampler> distributionSamplers;
 
+    List distributionsPrior = priors["distributions"];
+    for (unsigned int k = 0; k < nComponents; ++k) {
+        distributions.push_back(Distribution(distributionNames[k]));
+        distributionSamplers.push_back(ParameterSampler(
+            distributionsPrior[k], samplingSchemes[k],
+            distributions[k]
+        ));
+    }
     colvec pPrior = as<colvec>(priors["p"]);
 
     // Data and missing data
@@ -80,27 +100,27 @@ List independentSample(
 
     // Starting values for parameters
     ucolvec zCurrent = as<ucolvec>(zStart);
-    colvec thetaLower = as<colvec>(distributionsStart[0]);
-    colvec thetaUpper = as<colvec>(distributionsStart[1]);
-    colvec pCurrent(3);
-    mat pCurrentGivenZ(y.n_elem, 2);
+    field<colvec> distributionCurrent = fieldFromList<colvec>(distributionsStart);
+
+    colvec pCurrent(nComponents + 1);
+    mat pCurrentGivenZ(y.n_elem, nComponents);
 
     // Samples for output
-    mat lowerSample;
-    mat upperSample;
+    field<mat> distributionSample(nComponents);
     if (distributionSampleThinning > 0) {
         unsigned int nDistributionSamples = ceil(
             static_cast<double>(nSamples) / static_cast<double>(distributionSampleThinning)
         );
-        lowerSample = mat(nDistributionSamples, thetaLower.n_elem);
-        upperSample = mat(nDistributionSamples, thetaUpper.n_elem);
+        for (unsigned int k = 0; k < nComponents; ++k) {
+            distributionSample[k].set_size(nDistributionSamples, distributionCurrent[k].n_elem);
+        }
     }
     mat pSample;
     if (pSampleThinning > 0) {
         unsigned int nPSamples = ceil(
             static_cast<double>(nSamples) / static_cast<double>(pSampleThinning)
         );
-        pSample = mat(nPSamples, 3);
+        pSample = mat(nPSamples, nComponents + 1);
     }
     umat zSample;
     if (zSampleThinning > 0) {
@@ -115,11 +135,7 @@ List independentSample(
 
     // Initial missing value sample
     sampleMissingY(
-        y, logY, yMissingIndices, zCurrent,
-        {
-            ParameterBoundDistribution(thetaLower, lowerDistribution),
-            ParameterBoundDistribution(thetaUpper, upperDistribution)
-        }
+        y, logY, yMissingIndices, zCurrent, getParameterBoundDistributions(distributions, distributionCurrent)
     );
 
     ProgressBar progressBar(nIterations);
@@ -127,30 +143,26 @@ List independentSample(
         // Sample p
         pCurrent = sampleP(zCurrent, pPrior);
 
-        // Sample mixture 2
-        thetaLower = lowerSampler.sample(thetaLower, DataBoundDistribution(y, logY, zCurrent, 2, lowerDistribution));
-
-        // Sample mixture 3
-        thetaUpper = upperSampler.sample(thetaUpper, DataBoundDistribution(y, logY, zCurrent, 3, upperDistribution));
+        // Sample distribution parameters
+        for (unsigned int k = 0; k < distributions.size(); ++k) {
+            distributionCurrent[k] = distributionSamplers[k].sample(
+                distributionCurrent[k],
+                DataBoundDistribution(y, logY, zCurrent, k + 2, distributions[k])
+            );
+        }
 
         // Sample \bm{z}
-        pCurrentGivenZ.col(0).fill(pCurrent[1]);
-        pCurrentGivenZ.col(1).fill(pCurrent[2]);
+        for (unsigned int k = 0; k < distributions.size(); ++k) {
+            pCurrentGivenZ.col(k).fill(pCurrent[k + 1]);
+        }
         zCurrent = sampleZ(
             pCurrentGivenZ, y, yIsMissing,
-            {
-                ParameterBoundDistribution(thetaLower, lowerDistribution),
-                ParameterBoundDistribution(thetaUpper, upperDistribution)
-            }
+            getParameterBoundDistributions(distributions, distributionCurrent)
         );
 
         // Sample missing values \bm{y^*}
         sampleMissingY(
-            y, logY, yMissingIndices, zCurrent,
-            {
-                ParameterBoundDistribution(thetaLower, lowerDistribution),
-                ParameterBoundDistribution(thetaUpper, upperDistribution)
-            }
+            y, logY, yMissingIndices, zCurrent, getParameterBoundDistributions(distributions, distributionCurrent)
         );
 
         if (iteration >= burnIn) {
@@ -158,8 +170,9 @@ List independentSample(
 
             if (distributionSampleThinning > 0 && (index % distributionSampleThinning == 0)) {
                 unsigned int sampleIndex = index / distributionSampleThinning;
-                lowerSample.row(sampleIndex) = thetaLower.t();
-                upperSample.row(sampleIndex) = thetaUpper.t();
+                for (unsigned int k = 0; k < nComponents; ++k) {
+                    distributionSample[k].row(sampleIndex) = distributionCurrent[k].t();
+                }
             }
 
             if (pSampleThinning > 0 && (index % pSampleThinning == 0)) {
@@ -183,8 +196,7 @@ List independentSample(
 
     List sample;
     if (distributionSampleThinning > 0) {
-        sample["lower"] = wrap(lowerSample);
-        sample["upper"] = wrap(upperSample);
+        sample["distribution"] = listFromField(distributionSample);
     }
     if (pSampleThinning > 0) {
         sample["p"] = wrap(pSample);
