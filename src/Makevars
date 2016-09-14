@@ -1,5 +1,7 @@
+ifdef USE_MPI
 MPI_COMPILE_FLAGS = $(shell mpic++ --showme:compile)
 MPI_LINK_FLAGS = $(shell mpic++ --showme:link)
+endif
 
 PKG_CXXFLAGS = -Wall $(CXX1XSTD) $(SHLIB_OPENMP_CXXFLAGS) $(MPI_COMPILE_FLAGS) -I eigen -I spectra/include
 PKG_CFLAGS = $(SHLIB_OPENMP_CFLAGS)

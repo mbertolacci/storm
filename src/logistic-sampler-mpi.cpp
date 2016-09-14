@@ -1,6 +1,10 @@
 #include <RcppArmadillo.h>
 #undef Free
+
+#ifdef USE_MPI
 #include <mpi.h>
+#endif
+
 #include "logistic-sampler-mpi.hpp"
 
 using arma::colvec;
@@ -8,6 +12,8 @@ using arma::cube;
 using arma::icolvec;
 using arma::mat;
 using arma::ucolvec;
+
+#ifdef USE_MPI
 
 void LogisticSamplerMPI::start() {
     nCurrent_ = ucolvec(getNComponents());
@@ -212,3 +218,13 @@ void LogisticSamplerMPI::gather_() {
         );
     }
 }
+
+#else
+
+void LogisticSamplerMPI::start() {}
+void LogisticSamplerMPI::next() {}
+void LogisticSamplerMPI::sampleDistributions_() {}
+void LogisticSamplerMPI::broadcast_() {}
+void LogisticSamplerMPI::gather_() {}
+
+#endif
