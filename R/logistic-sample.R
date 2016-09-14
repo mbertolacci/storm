@@ -307,11 +307,11 @@ ptsm_logistic_sample <- function(
             original_dim <- dim(results$sample[['delta']])
             dim(results$sample[['delta']]) <- original_dim[c(1, 2, 4)]
             results$sample[['delta']] <- provideDimnames(results$sample[['delta']])
-            # dimnames(results$sample[['delta']])[[1]] <- c('k=2', 'k=3')
+            dimnames(results$sample[['delta']])[[1]] <- paste0('k=', 2 : (n_components + 1))
             dimnames(results$sample[['delta']])[[2]] <- delta_param_names
         } else {
             results$sample[['delta']] <- provideDimnames(results$sample[['delta']])
-            # dimnames(results$sample[['delta']])[[1]] <- c('k=2', 'k=3')
+            dimnames(results$sample[['delta']])[[1]] <- paste0('k=', 2 : (n_components + 1))
             dimnames(results$sample[['delta']])[[2]] <- delta_param_names
             dimnames(results$sample[['delta']])[[3]] <- levels(data[[panel_variable]])
             dimnames(results$sample[['delta']])[[4]] <- NULL
@@ -320,13 +320,13 @@ ptsm_logistic_sample <- function(
 
     if (!is.null(results$sample[['delta_family_mean']]) && prior$logistic$type == 'hierarchical') {
         results$sample[['delta_family_mean']] <- provideDimnames(results$sample[['delta_family_mean']])
-        # dimnames(results$sample[['delta_family_mean']])[[1]] <- c('k=2', 'k=3')
+        dimnames(results$sample[['delta_family_mean']])[[1]] <- paste0('k=', 2 : (n_components + 1))
         dimnames(results$sample[['delta_family_mean']])[[2]] <- delta_param_names
         dimnames(results$sample[['delta_family_mean']])[[3]] <- colnames(level_design_matrix)
         dimnames(results$sample[['delta_family_mean']])[[4]] <- NULL
 
         results$sample[['delta_family_variance']] <- provideDimnames(results$sample[['delta_family_variance']])
-        # dimnames(results$sample[['delta_family_variance']])[[1]] <- c('k=2', 'k=3')
+        dimnames(results$sample[['delta_family_variance']])[[1]] <- paste0('k=', 2 : (n_components + 1))
         dimnames(results$sample[['delta_family_variance']])[[2]] <- delta_param_names
         dimnames(results$sample[['delta_family_variance']])[[3]] <- NULL
     }
@@ -372,6 +372,9 @@ ptsm_logistic_sample <- function(
 ptsm_logistic_sample_y <- function(sampler_results, y_sample_thinning = 1) {
     if (is.null(sampler_results$panel_variable)) {
         data_levels <- factor(rep('dummy', nrow(sampler_results$data)))
+        original_dim <- dim(sampler_results$sample$delta)
+
+        dim(sampler_results$sample$delta) <- c(original_dim[1], original_dim[2], 1, original_dim[3])
     } else {
         data_levels <- sampler_results$data[[sampler_results$panel_variable]]
     }
