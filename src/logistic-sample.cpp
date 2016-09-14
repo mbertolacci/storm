@@ -74,13 +74,14 @@ List logisticSampleY(
     }
 
     unsigned int nLevels = panelExplanatoryVariablesR.length();
+    unsigned int nComponents = distributions.size();
 
     field<mat> panelExplanatoryVariables = fieldFromList<mat>(panelExplanatoryVariablesR);
     for (unsigned int level = 0; level < nLevels; ++level) {
         // Add room for the latent variable lags
         panelExplanatoryVariables[level].resize(
             panelExplanatoryVariables[level].n_rows,
-            panelExplanatoryVariables[level].n_cols + 2
+            panelExplanatoryVariables[level].n_cols + nComponents
         );
     }
 
@@ -109,20 +110,20 @@ List logisticSampleY(
             mat delta = panelDeltaSample[level].slice(sampleIndex);
             unsigned int previousZ = panelZ0Sample(sampleIndex, level);
 
-            colvec componentSums(distributionSample.n_elem + 1, arma::fill::zeros);
-            colvec componentExpDiff(distributionSample.n_elem + 1);
-            colvec p(distributionSample.n_elem);
+            colvec componentSums(nComponents + 1, arma::fill::zeros);
+            colvec componentExpDiff(nComponents + 1);
+            colvec p(nComponents);
 
             for (unsigned int i = 0; i < panelYSample[level].n_cols; ++i) {
-                for (unsigned int k = 0; k < delta.n_rows; ++k) {
-                    panelExplanatoryVariables[level](i, nDeltas + k - delta.n_rows) = previousZ == k + 2;
+                for (unsigned int k = 0; k < nComponents; ++k) {
+                    panelExplanatoryVariables[level](i, nDeltas + k - nComponents) = previousZ == k + 2;
                 }
 
-                for (unsigned int k = 0; k < delta.n_rows; ++k) {
+                for (unsigned int k = 0; k < nComponents; ++k) {
                     componentSums[k] = arma::dot(delta.row(k), panelExplanatoryVariables[level].row(i));
                 }
                 componentExpDiff = exp(componentSums - arma::max(componentSums));
-                p = componentExpDiff.head(delta.n_rows) / arma::sum(componentExpDiff);
+                p = componentExpDiff.head(nComponents) / arma::sum(componentExpDiff);
 
                 unsigned int z = sampleSingleZ(p);
                 double y = 0;
