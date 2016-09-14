@@ -232,18 +232,17 @@ BEGIN_RCPP
 END_RCPP
 }
 // logisticSampleY
-List logisticSampleY(List panelExplanatoryVariablesR, List panelDeltaSampleR, List panelZ0SampleR, NumericMatrix thetaLowerSampleR, NumericMatrix thetaUpperSampleR, StringVector distributionNames);
-RcppExport SEXP positivemixtures_logisticSampleY(SEXP panelExplanatoryVariablesRSEXP, SEXP panelDeltaSampleRSEXP, SEXP panelZ0SampleRSEXP, SEXP thetaLowerSampleRSEXP, SEXP thetaUpperSampleRSEXP, SEXP distributionNamesSEXP) {
+List logisticSampleY(List panelExplanatoryVariablesR, List panelDeltaSampleR, List panelZ0SampleR, List distributionSampleR, StringVector distributionNames);
+RcppExport SEXP positivemixtures_logisticSampleY(SEXP panelExplanatoryVariablesRSEXP, SEXP panelDeltaSampleRSEXP, SEXP panelZ0SampleRSEXP, SEXP distributionSampleRSEXP, SEXP distributionNamesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< List >::type panelExplanatoryVariablesR(panelExplanatoryVariablesRSEXP);
     Rcpp::traits::input_parameter< List >::type panelDeltaSampleR(panelDeltaSampleRSEXP);
     Rcpp::traits::input_parameter< List >::type panelZ0SampleR(panelZ0SampleRSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type thetaLowerSampleR(thetaLowerSampleRSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type thetaUpperSampleR(thetaUpperSampleRSEXP);
+    Rcpp::traits::input_parameter< List >::type distributionSampleR(distributionSampleRSEXP);
     Rcpp::traits::input_parameter< StringVector >::type distributionNames(distributionNamesSEXP);
-    rcpp_result_gen = Rcpp::wrap(logisticSampleY(panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, thetaLowerSampleR, thetaUpperSampleR, distributionNames));
+    rcpp_result_gen = Rcpp::wrap(logisticSampleY(panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames));
     return rcpp_result_gen;
 END_RCPP
 }

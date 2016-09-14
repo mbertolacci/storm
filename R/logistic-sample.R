@@ -386,12 +386,16 @@ ptsm_logistic_sample_y <- function(sampler_results, y_sample_thinning = 1) {
         window(sampler_results$sample$z0[, level_index], 1, thin = y_sample_thinning)
     })
 
+    thinned_distribution_sample <- list()
+    for (k in 1 : length(sampler_results$sample$distribution)) {
+        thinned_distribution_sample[[k]] <- window(sampler_results$sample$distribution[[k]], 1, thin = y_sample_thinning)
+    }
+
     inner_results <- .ptsm_logistic_sample_y(
         panel_design_matrix,
         panel_delta_sample,
         panel_z0_sample,
-        window(sampler_results$sample$lower, 1, thin = y_sample_thinning),
-        window(sampler_results$sample$upper, 1, thin = y_sample_thinning),
+        thinned_distribution_sample,
         sampler_results$distributions
     )
 

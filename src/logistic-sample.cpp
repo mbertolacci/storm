@@ -61,15 +61,17 @@ List logisticSample(
 // [[Rcpp::export(name=".ptsm_logistic_sample_y")]]
 List logisticSampleY(
     List panelExplanatoryVariablesR, List panelDeltaSampleR, List panelZ0SampleR,
-    NumericMatrix thetaLowerSampleR, NumericMatrix thetaUpperSampleR,
+    List distributionSampleR,
     StringVector distributionNames
 ) {
     RNG::initialise();
 
-    mat thetaLowerSample = trans(as<mat>(thetaLowerSampleR));
-    mat thetaUpperSample = trans(as<mat>(thetaUpperSampleR));
-    Distribution lowerDistribution(distributionNames[0]);
-    Distribution upperDistribution(distributionNames[1]);
+    field<mat> distributionSample(distributionNames.length());
+    std::vector<Distribution> distributions;
+    for (unsigned int k = 0; k < distributionNames.length(); ++k) {
+        distributionSample[k] = trans(as<mat>(distributionSampleR[k]));
+        distributions.push_back(Distribution(distributionNames[k]));
+    }
 
     unsigned int nLevels = panelExplanatoryVariablesR.length();
 
@@ -82,7 +84,7 @@ List logisticSampleY(
         );
     }
 
-    unsigned int nSamples = thetaLowerSample.n_cols;
+    unsigned int nSamples = distributionSample[0].n_cols;
     unsigned int nDeltas = panelExplanatoryVariables[0].n_cols;
 
     field<cube> panelDeltaSample(panelDeltaSampleR.length());
@@ -107,23 +109,26 @@ List logisticSampleY(
             mat delta = panelDeltaSample[level].slice(sampleIndex);
             unsigned int previousZ = panelZ0Sample(sampleIndex, level);
 
+            colvec componentSums(distributionSample.n_elem + 1, arma::fill::zeros);
+            colvec componentExpDiff(distributionSample.n_elem + 1);
+            colvec p(distributionSample.n_elem);
+
             for (unsigned int i = 0; i < panelYSample[level].n_cols; ++i) {
-                panelExplanatoryVariables[level](i, nDeltas - 2) = previousZ == 2;
-                panelExplanatoryVariables[level](i, nDeltas - 1) = previousZ == 3;
-                double lowerSum = arma::dot(delta.row(0), panelExplanatoryVariables[level].row(i));
-                double upperSum = arma::dot(delta.row(1), panelExplanatoryVariables[level].row(i));
+                for (unsigned int k = 0; k < delta.n_rows; ++k) {
+                    panelExplanatoryVariables[level](i, nDeltas + k - delta.n_rows) = previousZ == k + 2;
+                }
 
-                double expDiff = exp(upperSum - lowerSum);
-                double pLower = 1 / (1 + exp(-lowerSum) + expDiff);
-                double pUpper = 1 / (1 + exp(-upperSum) + 1 / expDiff);
+                for (unsigned int k = 0; k < delta.n_rows; ++k) {
+                    componentSums[k] = arma::dot(delta.row(k), panelExplanatoryVariables[level].row(i));
+                }
+                componentExpDiff = exp(componentSums - arma::max(componentSums));
+                p = componentExpDiff.head(delta.n_rows) / arma::sum(componentExpDiff);
 
-                unsigned int z = sampleSingleZ({ pLower, pUpper });
+                unsigned int z = sampleSingleZ(p);
                 double y = 0;
 
-                if (z == 2) {
-                    y = lowerDistribution.sample(thetaLowerSample.col(sampleIndex));
-                } else if (z == 3) {
-                    y = upperDistribution.sample(thetaUpperSample.col(sampleIndex));
+                if (z > 1) {
+                    y = distributions[z - 2].sample(distributionSample[z - 2].col(sampleIndex));
                 }
 
                 panelYSample[level](sampleIndex, i) = y;
