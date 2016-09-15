@@ -20,14 +20,14 @@ output <- ptsm_logistic_generate(
 data <- input_data
 data$y <- output$data$y
 
-sample <- ptsm_logistic_sample(
-    n_samples=5000, burn_in=1000,
+results <- ptsm_logistic_sample(
+    n_samples=1000, burn_in=1000,
     data, y ~ t, order=0,
     distributions=distributions,
     theta_sample_thinning=1, z_sample_thinning=0, y_missing_sample_thinning=0,
     verbose=0
 )
-print(colMeans(sample$theta_sample))
+print(colMeans(results$sample$distribution[[1]]))
 
 cat('\n--------- Gamma / Gamma (single, 1-order)\n')
 

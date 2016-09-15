@@ -19,8 +19,8 @@ results <- ptsm_independent_sample(
     progress=TRUE
 )
 
-print(colMeans(results$sample$lower))
-print(colMeans(results$sample$upper))
+print(colMeans(results$sample$distribution[[1]]))
+print(colMeans(results$sample$distribution[[2]]))
 print(colMeans(results$sample$p))
 
 cat('\n--------- Gengamma / Gengamma\n')
