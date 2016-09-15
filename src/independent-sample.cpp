@@ -81,10 +81,11 @@ List independentSample(
     std::vector<ParameterSampler> distributionSamplers;
 
     List distributionsPrior = priors["distributions"];
+    List distributionsSamplingSchemes = samplingSchemes["distributions"];
     for (unsigned int k = 0; k < nComponents; ++k) {
         distributions.push_back(Distribution(distributionNames[k]));
         distributionSamplers.push_back(ParameterSampler(
-            distributionsPrior[k], samplingSchemes[k],
+            distributionsPrior[k], distributionsSamplingSchemes[k],
             distributions[k]
         ));
     }
