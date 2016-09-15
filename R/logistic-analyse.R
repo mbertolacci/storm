@@ -67,8 +67,10 @@ ptsm_logistic_predicted_p <- function(delta_samples, z0_samples, design_matrix, 
     level_input <- .prepare_level_input(delta_samples, z0_samples, design_matrix, data_levels)
     p_results <- .ptsm_logistic_predicted_p(level_input, order)
 
-    p_mat <- matrix(0, nrow = nrow(design_matrix), ncol = dim(delta_samples)[1] + 1)
+    n_components <- dim(delta_samples)[1] + 1
+    p_mat <- matrix(0, nrow = nrow(design_matrix), ncol = n_components)
     p_hat <- data.frame(p_mat)
+    colnames(p_hat) <- paste0('p', 1 : n_components)
 
     for (level_index in 1 : nlevels(data_levels))  {
         level_indices <- data_levels == levels(data_levels)[level_index]
