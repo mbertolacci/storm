@@ -107,16 +107,15 @@ arma::colvec ParameterSampler::sample(
         }
     }
 
-    while (true) {
-        for (unsigned int i = 0; i < currentParameters.n_elem; ++i) {
-            unitNormals[i] = rng.randn();
-        }
-        proposalParameters = proposalMean + covarianceCholesky_ * unitNormals;
+    for (unsigned int i = 0; i < currentParameters.n_elem; ++i) {
+        unitNormals[i] = rng.randn();
+    }
+    proposalParameters = proposalMean + covarianceCholesky_ * unitNormals;
 
-        if (satisfiesPrior(proposalParameters)
-            && !boundDistribution.isInSupport(0, proposalParameters)) {
-            break;
-        }
+    if (!satisfiesPrior(proposalParameters)
+        || boundDistribution.isInSupport(0, proposalParameters)) {
+        // Reject the sample
+        return currentParameters;
     }
 
     double currentLogDensity = boundDistribution.logLikelihood(currentParameters);
