@@ -6,6 +6,31 @@
 
 using namespace Rcpp;
 
+// idigamma
+double idigamma(double y);
+RcppExport SEXP positivemixtures_idigamma(SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(idigamma(y));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rGammaShapeConjugateR
+NumericVector rGammaShapeConjugateR(unsigned int n, double beta, NumericVector x, Rcpp::Nullable<NumericVector> prior);
+RcppExport SEXP positivemixtures_rGammaShapeConjugateR(SEXP nSEXP, SEXP betaSEXP, SEXP xSEXP, SEXP priorSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< unsigned int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<NumericVector> >::type prior(priorSEXP);
+    rcpp_result_gen = Rcpp::wrap(rGammaShapeConjugateR(n, beta, x, prior));
+    return rcpp_result_gen;
+END_RCPP
+}
 // gpSample
 List gpSample(NumericVector y, NumericMatrix designMatrix, NumericVector betaPriorMean, NumericVector betaPriorVariance, double variancePriorAlpha, double variancePriorBeta, double tauSquaredPriorAlpha, double tauSquaredPriorBeta, unsigned int nGPBases);
 RcppExport SEXP positivemixtures_gpSample(SEXP ySEXP, SEXP designMatrixSEXP, SEXP betaPriorMeanSEXP, SEXP betaPriorVarianceSEXP, SEXP variancePriorAlphaSEXP, SEXP variancePriorBetaSEXP, SEXP tauSquaredPriorAlphaSEXP, SEXP tauSquaredPriorBetaSEXP, SEXP nGPBasesSEXP) {

@@ -126,6 +126,18 @@ class DataBoundDistribution {
 
     arma::mat hessian(arma::colvec parameters) const;
 
+    double getSumY() const {
+        return sumY_;
+    }
+
+    double getSumLogY() const {
+        return sumLogY_;
+    }
+
+    unsigned int getN() const {
+        return thisN_;
+    }
+
  private:
     arma::colvec y_;
     arma::colvec logY_;

@@ -10,22 +10,29 @@ class ParameterSampler {
     ParameterSampler() = default;
     ParameterSampler(Rcpp::List prior, Rcpp::List samplingScheme, Distribution distribution);
 
-    void printAcceptanceRatio(int nIterations);
-    void resetAcceptCount();
-
     arma::colvec sample(const arma::colvec currentParameters, const DataBoundDistribution &boundDistribution);
 
  private:
+    bool useGibbs_;
+
     bool useMle_;
     bool useObservedInformation_;
-    bool ignoreCovariance_;
-    int accept_;
     double observedInformationInflationFactor_;
 
+    arma::colvec priorAlpha_;
+    arma::colvec priorBeta_;
     arma::mat uniformPriorBounds_;
     arma::mat covarianceCholesky_;
 
-    bool satisfiesPrior(arma::colvec parameters) const;
+    arma::colvec sampleGibbs_(
+        const arma::colvec currentParameters, const DataBoundDistribution& boundDistribution
+    );
+
+    arma::colvec sampleMetropolisHastings_(
+        const arma::colvec currentParameters, const DataBoundDistribution& boundDistribution
+    );
+
+    bool satisfiesPrior_(arma::colvec parameters) const;
 };
 
 #endif  // SRC_PARAMETER_SAMPLER_HPP_

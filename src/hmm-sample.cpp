@@ -181,10 +181,6 @@ List hmmSample(
 
         if (verbose > 0 && iteration == burnIn) {
             Rcout << "Burn in complete\n";
-            lowerSampler.printAcceptanceRatio(burnIn);
-            upperSampler.printAcceptanceRatio(burnIn);
-            lowerSampler.resetAcceptCount();
-            upperSampler.resetAcceptCount();
         }
 
         if (iteration >= burnIn) {
@@ -208,11 +204,6 @@ List hmmSample(
                 yMissingSample.row(index / yMissingSampleThinning) = y(yMissingIndices).t();
             }
         }
-    }
-
-    if (verbose > 0) {
-        lowerSampler.printAcceptanceRatio(nSamples);
-        upperSampler.printAcceptanceRatio(nSamples);
     }
 
     List results;

@@ -69,13 +69,13 @@
     return(gp_design_matrix)
 }
 
-.get_logistic_sample_prior <- function(prior, distributions, n_levels, n_deltas, n_level_vars) {
+.get_logistic_sample_prior <- function(prior, distributions, n_levels, n_deltas, n_level_vars, sampling_scheme) {
     if (is.null(prior)) {
         prior <- list()
     }
 
     if (is.null(prior$distributions)) {
-        prior$distributions <- .default_distributions_prior(distributions)
+        prior$distributions <- .default_distributions_prior(distributions, sampling_scheme$distributions)
     }
 
     n_components <- length(prior$distributions)
@@ -213,15 +213,19 @@ ptsm_logistic_sample <- function(
         n_level_vars <- .get_formula_n_terms(level_formula)
     }
 
-    prior <- .get_logistic_sample_prior(prior, distributions, n_levels, n_deltas, n_level_vars)
-
     if (is.null(sampling_scheme)) {
-        sampling_scheme <- .default_sampling_scheme(distributions)
+        sampling_scheme <- list()
+    }
+
+    if (is.null(sampling_scheme$distributions)) {
+        sampling_scheme$distributions <- .default_sampling_scheme(distributions)
     }
     if (is.null(sampling_scheme$logistic)) {
         sampling_scheme$logistic <- rep(list(list()), n_levels)
     }
     stopifnot(.validate_sampling_scheme(sampling_scheme, n_levels))
+
+    prior <- .get_logistic_sample_prior(prior, distributions, n_levels, n_deltas, n_level_vars, sampling_scheme)
 
     futile.logger::flog.debug('Getting starting values', name = 'ptsm.logistic_sample')
     all_y <- data[[all.vars(formula)[1]]]

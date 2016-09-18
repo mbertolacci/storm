@@ -8,14 +8,11 @@ ptsm_independent_sample <- function(
     thinning = NULL,
     progress = FALSE
 ) {
+    n_components <- length(distributions)
+
     if (is.null(prior)) {
         prior <- list()
     }
-    if (is.null(prior$distributions)) {
-        prior$distributions <- .default_distributions_prior(distributions)
-    }
-    n_components <- length(prior$distributions)
-
     if (is.null(prior$p)) {
         prior$p <- rep(1, n_components + 1)
     }
@@ -25,6 +22,10 @@ ptsm_independent_sample <- function(
     }
     if (is.null(sampling_scheme$distributions)) {
         sampling_scheme$distributions <- .default_sampling_scheme(distributions)
+    }
+
+    if (is.null(prior$distributions)) {
+        prior$distributions <- .default_distributions_prior(distributions, sampling_scheme$distributions)
     }
 
     if (is.null(thinning)) {

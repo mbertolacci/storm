@@ -28,9 +28,14 @@
     return(output)
 }
 
-.default_distributions_prior <- function(distributions) {
-    lapply(distributions, function(distribution) {
+.default_distributions_prior <- function(distributions, sampling_schemes) {
+    lapply(1 : length(distributions), function(i) {
+        distribution <- distributions[i]
+
         if (distribution == 'gamma') {
+            if (sampling_schemes[[i]]$type == 'gibbs') {
+                return(list(alpha = c(1, 1, 1), beta = c(1.1, 0.5)))
+            }
             return(list(type = 'uniform', bounds = matrix(c(0, 0, 1000, 1000), nrow = 2)))
         } else if (distribution == 'gengamma') {
             return(list(type = 'uniform', bounds = matrix(c(-1000, 0, -100, 1000, 1000, 100), nrow = 3)))
@@ -43,11 +48,17 @@
 .default_sampling_scheme <- function(distributions) {
     lapply(distributions, function(distribution) {
         if (distribution == 'gamma') {
-            return(list(use_mle = TRUE, use_observed_information = TRUE, observed_information_inflation_factor = 1))
+            return(list(type = 'gibbs'))
         } else if (distribution == 'gengamma') {
-            return(list(use_mle = FALSE, use_observed_information = TRUE, observed_information_inflation_factor = 1))
+            return(list(
+                type = 'metropolis_hastings', use_mle = FALSE,
+                use_observed_information = TRUE, observed_information_inflation_factor = 1
+            ))
         } else if (distribution == 'gev') {
-            return(list(use_mle = FALSE, use_observed_information = FALSE, covariance = diag(rep(1, 3))))
+            return(list(
+                type = 'metropolis_hastings', use_mle = FALSE,
+                use_observed_information = FALSE, covariance = diag(rep(1, 3))
+            ))
         }
     })
 }

@@ -1,5 +1,6 @@
 #include <RcppArmadillo.h>
 
+#include "alpha-conditional.hpp"
 #include "parameter-sampler.hpp"
 #include "rng.hpp"
 
@@ -17,61 +18,100 @@ bool acceptOrReject(double currentLogDensity, double proposalLogDensity) {
     return log(rng.randu()) < alpha;
 }
 
-ParameterSampler::ParameterSampler(List prior, List samplingScheme, Distribution distribution)
-    : accept_{0} {
-
-    if (samplingScheme.containsElementNamed("use_mle")) {
-        useMle_ = static_cast<int>(samplingScheme["use_mle"]);
+ParameterSampler::ParameterSampler(List prior, List samplingScheme, Distribution distribution) {
+    if (samplingScheme.containsElementNamed("type")) {
+        useGibbs_ = strcmp(samplingScheme["type"], "gibbs") == 0;
     } else {
-        useMle_ = distribution.hasMaximumLikelihoodEstimate();
+        useGibbs_ = distribution.getType() == GAMMA;
     }
 
-    if (samplingScheme.containsElementNamed("use_observed_information")) {
-        useObservedInformation_ = static_cast<int>(samplingScheme["use_observed_information"]);
+    if (useGibbs_) {
+        if (prior.containsElementNamed("alpha")) {
+            priorAlpha_ = as<arma::colvec>(prior["alpha"]);
+        } else {
+            stop("Must provide parameters for Gibbs sampler");
+        }
+        if (prior.containsElementNamed("beta")) {
+            priorBeta_ = as<arma::colvec>(prior["beta"]);
+        } else {
+            stop("Must provide parameters for Gibbs sampler");
+        }
     } else {
-        useObservedInformation_ = distribution.hasHessian();
-    }
+        if (samplingScheme.containsElementNamed("use_mle")) {
+            useMle_ = static_cast<int>(samplingScheme["use_mle"]);
+        } else {
+            useMle_ = distribution.hasMaximumLikelihoodEstimate();
+        }
 
-    if (samplingScheme.containsElementNamed("ignore.covariance")) {
-        ignoreCovariance_ = static_cast<int>(samplingScheme["ignore.covariance"]);
-    } else {
-        ignoreCovariance_ = false;
-    }
+        if (samplingScheme.containsElementNamed("use_observed_information")) {
+            useObservedInformation_ = static_cast<int>(samplingScheme["use_observed_information"]);
+        } else {
+            useObservedInformation_ = distribution.hasHessian();
+        }
 
-    if (samplingScheme.containsElementNamed("observed_information_inflation_factor")) {
-        observedInformationInflationFactor_ = samplingScheme["observed_information_inflation_factor"];
-    } else {
-        observedInformationInflationFactor_ = 1.0;
-    }
+        if (samplingScheme.containsElementNamed("observed_information_inflation_factor")) {
+            observedInformationInflationFactor_ = samplingScheme["observed_information_inflation_factor"];
+        } else {
+            observedInformationInflationFactor_ = 1.0;
+        }
 
-    if (strcmp(prior["type"], "uniform") == 0) {
-        uniformPriorBounds_ = as<arma::mat>(prior["bounds"]);
-    }
+        if (strcmp(prior["type"], "uniform") == 0) {
+            uniformPriorBounds_ = as<arma::mat>(prior["bounds"]);
+        }
 
-    if (!useObservedInformation_) {
-        covarianceCholesky_ = arma::chol(as<arma::mat>(samplingScheme["covariance"]));
+        if (!useObservedInformation_) {
+            covarianceCholesky_ = arma::chol(as<arma::mat>(samplingScheme["covariance"]));
+        }
     }
 
     // Sanity checking
-    if (!distribution.hasMaximumLikelihoodEstimate() && useMle_) {
-        stop("No support for using MLE with %s", distribution.getName());
+    if (useGibbs_ && distribution.getType() != GAMMA) {
+        stop("Gibbs sampler supported only for Gamma distribution");
     }
 
-    if (!distribution.hasHessian() && useObservedInformation_) {
-        stop("No support for using Hessian with %s", distribution.getName());
+    if (!useGibbs_) {
+        if (!distribution.hasMaximumLikelihoodEstimate() && useMle_) {
+            stop("No support for using MLE with %s", distribution.getName());
+        }
+
+        if (!distribution.hasHessian() && useObservedInformation_) {
+            stop("No support for using Hessian with %s", distribution.getName());
+        }
     }
-}
-
-void ParameterSampler::printAcceptanceRatio(int nIterations) {
-    Rcout << "Acceptance ratios " << (static_cast<double>(accept_) / static_cast<double>(nIterations)) << "\n";
-}
-
-void ParameterSampler::resetAcceptCount() {
-    accept_ = 0;
 }
 
 arma::colvec ParameterSampler::sample(
-    const arma::colvec currentParameters, const DataBoundDistribution &boundDistribution
+    const arma::colvec currentParameters, const DataBoundDistribution& boundDistribution
+) {
+    if (useGibbs_) {
+        return sampleGibbs_(currentParameters, boundDistribution);
+    } else {
+        return sampleMetropolisHastings_(currentParameters, boundDistribution);
+    }
+}
+
+arma::colvec ParameterSampler::sampleGibbs_(
+    const arma::colvec currentParameters, const DataBoundDistribution& boundDistribution
+) {
+    arma::colvec output(currentParameters);
+    double n = static_cast<double>(boundDistribution.getN());
+
+    output[0] = rGammaShapeConjugate(
+        output[1],
+        priorAlpha_[0] + boundDistribution.getSumLogY(),
+        priorAlpha_[1] + n,
+        priorAlpha_[2] + n
+    );
+    output[1] = 1 / rng.randg(
+        priorBeta_[0] + output[0] * n,
+        priorBeta_[1] / (1 + priorBeta_[1] * boundDistribution.getSumY())
+    );
+
+    return output;
+}
+
+arma::colvec ParameterSampler::sampleMetropolisHastings_(
+    const arma::colvec currentParameters, const DataBoundDistribution& boundDistribution
 ) {
     arma::colvec proposalMean(currentParameters);
 
@@ -84,10 +124,6 @@ arma::colvec ParameterSampler::sample(
 
     if (useObservedInformation_) {
         arma::mat hessian = boundDistribution.hessian(proposalMean);
-        if (ignoreCovariance_) {
-            hessian = arma::diagmat(hessian);
-        }
-
         arma::mat negInverseHessian;
 
         try {
@@ -107,12 +143,9 @@ arma::colvec ParameterSampler::sample(
         }
     }
 
-    for (unsigned int i = 0; i < currentParameters.n_elem; ++i) {
-        unitNormals[i] = rng.randn();
-    }
-    proposalParameters = proposalMean + covarianceCholesky_ * unitNormals;
+    proposalParameters = proposalMean + covarianceCholesky_ * rng.randn(currentParameters.n_elem);
 
-    if (!satisfiesPrior(proposalParameters)
+    if (!satisfiesPrior_(proposalParameters)
         || boundDistribution.isInSupport(0, proposalParameters)) {
         // Reject the sample
         return currentParameters;
@@ -123,14 +156,13 @@ arma::colvec ParameterSampler::sample(
 
     double alpha = proposalLogDensity - currentLogDensity;
     if (log(rng.randu()) < alpha) {
-        accept_++;
         return proposalParameters;
     }
 
     return currentParameters;
 }
 
-bool ParameterSampler::satisfiesPrior(arma::colvec parameters) const {
+bool ParameterSampler::satisfiesPrior_(arma::colvec parameters) const {
     for (unsigned int i = 0; i < parameters.n_elem; ++i) {
         if (parameters[i] < uniformPriorBounds_(i, 0)) return false;
         if (parameters[i] > uniformPriorBounds_(i, 1)) return false;
