@@ -13,11 +13,6 @@ using Rcpp::stop;
 
 using ptsm::rng;
 
-bool acceptOrReject(double currentLogDensity, double proposalLogDensity) {
-    double alpha = proposalLogDensity - currentLogDensity;
-    return log(rng.randu()) < alpha;
-}
-
 ParameterSampler::ParameterSampler(List prior, List samplingScheme, Distribution distribution) {
     if (samplingScheme.containsElementNamed("type")) {
         useGibbs_ = strcmp(samplingScheme["type"], "gibbs") == 0;
@@ -110,6 +105,12 @@ arma::colvec ParameterSampler::sampleGibbs_(
     return output;
 }
 
+double dlogmvtnorm(const arma::colvec x, const arma::colvec mu, const arma::mat cholesky) {
+    return -arma::as_scalar(
+        (x - mu).t() * cholesky.t() * cholesky * (x - mu)
+    ) / 2.0;
+}
+
 arma::colvec ParameterSampler::sampleMetropolisHastings_(
     const arma::colvec currentParameters, const DataBoundDistribution& boundDistribution
 ) {
@@ -118,9 +119,6 @@ arma::colvec ParameterSampler::sampleMetropolisHastings_(
     if (useMle_) {
         proposalMean = boundDistribution.maximumLikelihoodEstimate(currentParameters);
     }
-
-    arma::colvec proposalParameters(currentParameters.n_elem);
-    arma::colvec unitNormals(currentParameters.n_elem);
 
     if (useObservedInformation_) {
         arma::mat hessian = boundDistribution.hessian(proposalMean);
@@ -143,7 +141,7 @@ arma::colvec ParameterSampler::sampleMetropolisHastings_(
         }
     }
 
-    proposalParameters = proposalMean + covarianceCholesky_ * rng.randn(currentParameters.n_elem);
+    arma::colvec proposalParameters = proposalMean + covarianceCholesky_ * rng.randn(currentParameters.n_elem);
 
     if (!satisfiesPrior_(proposalParameters)
         || boundDistribution.isInSupport(0, proposalParameters)) {
@@ -154,7 +152,16 @@ arma::colvec ParameterSampler::sampleMetropolisHastings_(
     double currentLogDensity = boundDistribution.logLikelihood(currentParameters);
     double proposalLogDensity = boundDistribution.logLikelihood(proposalParameters);
 
-    double alpha = proposalLogDensity - currentLogDensity;
+    double qCurrentLogDensity = 0;
+    double qProposalLogDensity = 0;
+    if (useMle_) {
+        // If using the MLE, the proposal distribution is not symmetric and therefore we must
+        // calculate this
+        qCurrentLogDensity = dlogmvtnorm(currentParameters, proposalMean, covarianceCholesky_);
+        qProposalLogDensity = dlogmvtnorm(proposalParameters, proposalMean, covarianceCholesky_);
+    }
+
+    double alpha = proposalLogDensity - currentLogDensity + qCurrentLogDensity - qProposalLogDensity;
     if (log(rng.randu()) < alpha) {
         return proposalParameters;
     }
