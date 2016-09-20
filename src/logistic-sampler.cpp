@@ -45,10 +45,11 @@ LogisticSampler::LogisticSampler(
 
     // Priors and samplers
     List distributionsPrior = priors["distributions"];
+    List distributionsSamplingSchemes = samplingSchemes["distributions"];
     for (unsigned int k = 0; k < nComponents; ++k) {
         distributions_.push_back(Distribution(distributionNames[k]));
         distributionSamplers_.push_back(ParameterSampler(
-            distributionsPrior[k], samplingSchemes[k],
+            distributionsPrior[k], distributionsSamplingSchemes[k],
             distributions_[k]
         ));
     }
