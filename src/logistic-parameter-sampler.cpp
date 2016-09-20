@@ -152,6 +152,8 @@ mat LogisticParameterSampler::sampleMetropolisHastings(
         deltaProposal, zCurrent, explanatoryVariables
     ) + prior.logPdf(deltaProposal);
 
+    // TODO(mgnb): put the proposal distribution here!
+
     double alpha = proposalLogDensity - currentLogDensity;
     if (log(rng.randu()) < alpha) {
         accept_++;
