@@ -127,12 +127,10 @@ void LogisticSamplerMPI::next() {
 
 void LogisticSamplerMPI::sampleDistributions_() {
     for (unsigned int k = 0; k < distributions_.size(); ++k) {
-        Rcpp::Rcout << "Sampling distribution " << k << " " << nCurrent_[k] << " " << sumYCurrent_[k] << " " << sumLogYCurrent_[k] << "\n";
         distributionCurrent_[k] = distributionSamplers_[k].sample(
             distributionCurrent_[k],
             DataBoundDistribution(nCurrent_[k], sumYCurrent_[k], sumLogYCurrent_[k], distributions_[k])
         );
-        Rcpp::Rcout << distributionCurrent_[k] << "\n";
     }
 }
 

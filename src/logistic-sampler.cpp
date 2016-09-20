@@ -160,8 +160,6 @@ void LogisticSampler::next() {
     for (unsigned int level = 0; level < nLevels_; ++level) {
         sampleLevel_(level);
     }
-
-    // Rcpp::Rcout << panelDeltaCurrent_.slice(0) << "\n";
 }
 
 void LogisticSampler::sampleDeltaFamilyMean_() {
@@ -235,14 +233,7 @@ void LogisticSampler::sampleDistributions_() {
     colvec logY = vectorise(panelLogYCurrent_);
     ucolvec zCurrent = vectorise(panelZCurrent_);
 
-    {
-        ucolvec indices = find(zCurrent == 1);
-        Rcpp::Rcout << 1 << " " << indices.n_elem << "\n";
-    }
-
     for (unsigned int k = 0; k < distributions_.size(); ++k) {
-        ucolvec indices = find(zCurrent == k + 2);
-        Rcpp::Rcout << (k + 2) << " " << indices.n_elem << " " << distributionCurrent_[k].t();
         distributionCurrent_[k] = distributionSamplers_[k].sample(
             distributionCurrent_[k],
             DataBoundDistribution(y, logY, zCurrent, k + 2, distributions_[k])
