@@ -1,6 +1,6 @@
 #include <RcppArmadillo.h>
 
-#include "alpha-conditional.hpp"
+#include "alpha-conjugate.hpp"
 #include "parameter-sampler.hpp"
 #include "rng.hpp"
 
