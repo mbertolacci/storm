@@ -62,7 +62,8 @@ List logisticSample(
 List logisticSampleY(
     List panelExplanatoryVariablesR, List panelDeltaSampleR, List panelZ0SampleR,
     List distributionSampleR,
-    StringVector distributionNames
+    StringVector distributionNames,
+    unsigned int order
 ) {
     RNG::initialise();
 
@@ -77,12 +78,14 @@ List logisticSampleY(
     unsigned int nComponents = distributions.size();
 
     field<mat> panelExplanatoryVariables = fieldFromList<mat>(panelExplanatoryVariablesR);
-    for (unsigned int level = 0; level < nLevels; ++level) {
-        // Add room for the latent variable lags
-        panelExplanatoryVariables[level].resize(
-            panelExplanatoryVariables[level].n_rows,
-            panelExplanatoryVariables[level].n_cols + nComponents
-        );
+    if (order > 0) {
+        for (unsigned int level = 0; level < nLevels; ++level) {
+            // Add room for the latent variable lags
+            panelExplanatoryVariables[level].resize(
+                panelExplanatoryVariables[level].n_rows,
+                panelExplanatoryVariables[level].n_cols + nComponents
+            );
+        }
     }
 
     unsigned int nSamples = distributionSample[0].n_cols;
@@ -115,8 +118,10 @@ List logisticSampleY(
             colvec p(nComponents);
 
             for (unsigned int i = 0; i < panelYSample[level].n_cols; ++i) {
-                for (unsigned int k = 0; k < nComponents; ++k) {
-                    panelExplanatoryVariables[level](i, nDeltas + k - nComponents) = previousZ == k + 2;
+                if (order > 0) {
+                    for (unsigned int k = 0; k < nComponents; ++k) {
+                        panelExplanatoryVariables[level](i, nDeltas + k - nComponents) = previousZ == k + 2;
+                    }
                 }
 
                 for (unsigned int k = 0; k < nComponents; ++k) {
