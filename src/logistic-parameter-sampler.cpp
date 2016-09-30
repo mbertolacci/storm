@@ -59,22 +59,24 @@ colvec sampleDeltaComponent(
     colvec omega(explanatoryVariables.n_rows);
     colvec meanPart(explanatoryVariables.n_rows);
 
+    colvec sums(deltaCurrent.n_rows, arma::fill::zeros);
     for (unsigned int i = 0; i < explanatoryVariables.n_rows; ++i) {
-        double thisSum = 0;
-        double otherSum = 0;
+        sums.fill(0);
+
         for (unsigned int j = 0; j < nDeltas; ++j) {
             for (unsigned int k = 0; k < deltaCurrent.n_rows; ++k) {
                 double value = deltaCurrent.at(k, j) * explanatoryVariables.at(i, j);
-                if (k == component) {
-                    thisSum += value;
-                } else {
-                    otherSum += value;
-                }
+                sums[k] += value;
             }
         }
 
-        // log(1 + exp(otherSum))
-        double c = log1p(exp(-otherSum)) + otherSum;
+        double thisSum = sums[component];
+
+        // Set sums[component] to 0, so it now represents delta_1 = 0
+        sums[component] = 0;
+        double maxSum = arma::max(sums);
+        // log \sum_{k != component} exp sum_k
+        double c = log(arma::sum(exp(sums - maxSum))) + maxSum;
 
         omega[i] = rpolyagamma(1, thisSum - c);
         meanPart[i] = (zCurrent[i] == (component + 2) ? 1.0 : 0) - 0.5 + omega[i] * c;
