@@ -170,7 +170,7 @@ ptsm_logistic_sample <- function(
     n_samples, burn_in,
     data, formula,
     distributions = c('gamma', 'gamma'), prior = NULL, sampling_scheme = NULL,
-    starting_value_method = 'cdf',
+    starting_values = 'cdf',
     order = 1,
     thinning = NULL, attach_data = TRUE, attach_level_data = TRUE,
     panel_variable = NULL,
@@ -229,7 +229,10 @@ ptsm_logistic_sample <- function(
 
     futile.logger::flog.debug('Getting starting values', name = 'ptsm.logistic_sample')
     all_y <- data[[all.vars(formula)[1]]]
-    starting_values <- .mixture_initial_values(all_y, distributions, method = starting_value_method)
+
+    if (class(starting_values) == 'character') {
+        starting_values <- .mixture_initial_values(all_y, distributions, method = starting_values)
+    }
 
     futile.logger::flog.debug('Calculating design matrix', name = 'ptsm.logistic_sample')
     design_matrix <- .get_logistic_design_matrix(data, formula, ...)
@@ -242,8 +245,16 @@ ptsm_logistic_sample <- function(
     panel_z0_start <- rep(1, n_levels)
     panel_design_matrix <- .levels_to_list(design_matrix, data_levels)
     panel_y <- .levels_to_list(all_y, data_levels)
-    # Set delta starting values to 0
-    panel_delta_start <- rep(list(matrix(0, nrow = n_components, ncol = n_deltas)), n_levels)
+    if (!is.null(starting_values$delta)) {
+        if (is.null(panel_variable)) {
+            panel_delta_start <- list(starting_values$delta)
+        } else {
+            panel_delta_start <- starting_values$delta
+        }
+    } else {
+        # Set delta starting values to 0
+        panel_delta_start <- rep(list(matrix(0, nrow = n_components, ncol = n_deltas)), n_levels)
+    }
     if (prior$logistic$type == 'hierarchical') {
         mean_dim <- c(n_components, n_deltas, ncol(level_design_matrix))
         delta_family_mean_start <- array(
@@ -354,6 +365,7 @@ ptsm_logistic_sample <- function(
         results$sample[['y_missing']] <- coda::mcmc(results[['y_missing']], start = 1, thin = thinning$y_missing)
     }
 
+    results$order <- order
     results$distributions <- distributions
     results$prior <- prior
     results$sampling_scheme <- sampling_scheme
@@ -403,7 +415,8 @@ ptsm_logistic_sample_y <- function(sampler_results, y_sample_thinning = 1) {
         panel_delta_sample,
         panel_z0_sample,
         thinned_distribution_sample,
-        sampler_results$distributions
+        sampler_results$distributions,
+        sampler_results$order
     )
 
     output <- list()
