@@ -38,7 +38,7 @@ ptsm_independent_sample <- function(
     )
 
     if (class(starting_values) == 'character') {
-        futile.logger::flog.debug('Getting starting values', name = 'ptsm.logistic_sample')
+        futile.logger::flog.debug('Getting starting values', name = 'ptsm.independent_sample')
         starting_values <- .mixture_initial_values(y, distributions, method = starting_values)
     }
 
