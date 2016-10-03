@@ -47,7 +47,7 @@ class ProgressBar {
             lastCheckTime_ = now;
         }
 
-        Rcpp::Rcout << "\r"
+        Rcpp::Rcout << "\r\033[2K"
           << currentStep_ << "/" << nSteps_ << " (" << percent << "%)"
           << " " << lastCheckStepTime_ << "ms/iteration"
           << " (" << ((nSteps_ - currentStep_) * lastCheckStepTime_) / 1000 << "s remaining)";
