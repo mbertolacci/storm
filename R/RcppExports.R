@@ -64,8 +64,8 @@ gevPwmEstimateConstrained <- function(x, supportLim) {
     .Call('positivemixtures_logisticSample', PACKAGE = 'positivemixtures', nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, panelZStart, panelZ0Start, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress)
 }
 
-.ptsm_logistic_sample_y <- function(panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames) {
-    .Call('positivemixtures_logisticSampleY', PACKAGE = 'positivemixtures', panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames)
+.ptsm_logistic_sample_y <- function(panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames, order) {
+    .Call('positivemixtures_logisticSampleY', PACKAGE = 'positivemixtures', panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames, order)
 }
 
 benchmarkLogistic <- function(nDeltas, nValues, nIterations) {

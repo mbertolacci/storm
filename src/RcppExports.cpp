@@ -260,8 +260,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // logisticSampleY
-List logisticSampleY(List panelExplanatoryVariablesR, List panelDeltaSampleR, List panelZ0SampleR, List distributionSampleR, StringVector distributionNames);
-RcppExport SEXP positivemixtures_logisticSampleY(SEXP panelExplanatoryVariablesRSEXP, SEXP panelDeltaSampleRSEXP, SEXP panelZ0SampleRSEXP, SEXP distributionSampleRSEXP, SEXP distributionNamesSEXP) {
+List logisticSampleY(List panelExplanatoryVariablesR, List panelDeltaSampleR, List panelZ0SampleR, List distributionSampleR, StringVector distributionNames, unsigned int order);
+RcppExport SEXP positivemixtures_logisticSampleY(SEXP panelExplanatoryVariablesRSEXP, SEXP panelDeltaSampleRSEXP, SEXP panelZ0SampleRSEXP, SEXP distributionSampleRSEXP, SEXP distributionNamesSEXP, SEXP orderSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -270,7 +270,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< List >::type panelZ0SampleR(panelZ0SampleRSEXP);
     Rcpp::traits::input_parameter< List >::type distributionSampleR(distributionSampleRSEXP);
     Rcpp::traits::input_parameter< StringVector >::type distributionNames(distributionNamesSEXP);
-    rcpp_result_gen = Rcpp::wrap(logisticSampleY(panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames));
+    Rcpp::traits::input_parameter< unsigned int >::type order(orderSEXP);
+    rcpp_result_gen = Rcpp::wrap(logisticSampleY(panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames, order));
     return rcpp_result_gen;
 END_RCPP
 }
