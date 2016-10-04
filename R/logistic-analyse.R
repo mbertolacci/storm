@@ -111,3 +111,24 @@ ptsm_logistic_moments <- function(
 
     return(moments)
 }
+
+#' Calculate mean and quantiles of fitted delta values
+#' @export
+ptsm_logistic_fitted_delta <- function(sampler_results, probs = c(0.025, 0.1, 0.5, 0.9, 0.975)) {
+    stopifnot(length(dim(sampler_results$sample$delta_family_mean)) == 4)
+
+    delta_mean_sample <- aperm(sampler_results$sample$delta_family_mean, c(4, 3, 2, 1))
+    level_design_matrix <- sampler_results$level_design_matrix
+
+    delta_fitted <- .ptsm_logistic_fitted_delta(delta_mean_sample, level_design_matrix, probs)
+    delta_fitted <- aperm(delta_fitted, c(4, 2, 3, 1))
+    dimnames(delta_fitted)[[1]] <- dimnames(sampler_results$sample$delta_family_mean)[[1]]
+    dimnames(delta_fitted)[[2]] <- dimnames(sampler_results$sample$delta_family_mean)[[2]]
+    dimnames(delta_fitted)[[3]] <- c(
+        'mean',
+        sprintf('q%.2f', 100 * probs)
+    )
+    dimnames(delta_fitted)[[4]] <- rownames(level_design_matrix)
+
+    return(delta_fitted)
+}

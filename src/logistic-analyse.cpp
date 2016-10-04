@@ -1,4 +1,5 @@
 #include <RcppArmadillo.h>
+#include "hypercube4.hpp"
 #include "logistic-utils.hpp"
 #include "utils.hpp"
 
@@ -239,4 +240,70 @@ List logisticMoments(List distributionSamplesR, List levels, unsigned int order,
     }
 
     return listFromField(results);
+}
+
+// [[Rcpp::export(name=".ptsm_logistic_fitted_delta")]]
+NumericVector logisticFittedDelta(
+    NumericVector deltaFamilyMeanSamples,
+    NumericMatrix levelDesignMatrixR,
+    NumericVector probsR
+) {
+    mat levelDesignMatrix = arma::trans(as<mat>(levelDesignMatrixR));
+    colvec probs = as<colvec>(probsR);
+
+    NumericVector dims = deltaFamilyMeanSamples.attr("dim");
+
+    unsigned int nLevels = levelDesignMatrix.n_cols;
+    unsigned int nSamples = dims[0];
+    unsigned int nVars = dims[1];
+    unsigned int nColumns = dims[2];
+    unsigned int nRows = dims[3];
+
+    unsigned int nOutputs = probs.n_elem + 1;
+
+    ucolvec probIndices(probs.n_elem);
+    colvec probIndicesAdjustment(probs.n_elem);
+    for (unsigned int i = 0; i < probs.n_elem; ++i) {
+        double index = static_cast<double>(nSamples - 1) * probs[i];
+        probIndices[i] = floor(index);
+        probIndicesAdjustment[i] = index - floor(index);
+    }
+
+    hypercube4 output;
+    output.set_size(nLevels, nColumns, nOutputs, nRows);
+    cube deltaFamilySubset(nSamples, nVars, nColumns);
+    cube outputTemp(nLevels, nColumns, nOutputs);
+
+    for (unsigned int row = 0; row < nRows; ++row) {
+        std::copy(
+            deltaFamilyMeanSamples.begin() + row * nSamples * nVars * nColumns,
+            deltaFamilyMeanSamples.begin() + (row + 1) * nSamples * nVars * nColumns,
+            deltaFamilySubset.begin()
+        );
+
+        for (unsigned int column = 0; column < nColumns; ++column) {
+            // Sort each column
+            mat temp = arma::sort(
+                deltaFamilySubset.slice(column) * levelDesignMatrix,
+                "ascend", 0
+            );
+            outputTemp.slice(0).col(column) = arma::mean(temp, 0).t();
+            for (unsigned int i = 0; i < probs.n_elem; ++i) {
+                if (probIndices[i] == nSamples - 1) {
+                    // Boundary condition hit
+                    outputTemp.slice(i + 1).col(column) = temp.row(probIndices[i]).t();
+                } else {
+                    // Average between index and next up
+                    outputTemp.slice(i + 1).col(column) = (
+                        (1 - probIndicesAdjustment[i]) * temp.row(probIndices[i])
+                        + probIndicesAdjustment[i] * temp.row(probIndices[i] + 1)
+                    ).t();
+                }
+            }
+        }
+
+        output.set_hyperslice(row, outputTemp);
+    }
+
+    return output.asNumericVector();
 }

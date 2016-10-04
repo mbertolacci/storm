@@ -203,6 +203,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// logisticFittedDelta
+NumericVector logisticFittedDelta(NumericVector deltaFamilyMeanSamples, NumericMatrix levelDesignMatrixR, NumericVector probsR);
+RcppExport SEXP positivemixtures_logisticFittedDelta(SEXP deltaFamilyMeanSamplesSEXP, SEXP levelDesignMatrixRSEXP, SEXP probsRSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type deltaFamilyMeanSamples(deltaFamilyMeanSamplesSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type levelDesignMatrixR(levelDesignMatrixRSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type probsR(probsRSEXP);
+    rcpp_result_gen = Rcpp::wrap(logisticFittedDelta(deltaFamilyMeanSamples, levelDesignMatrixR, probsR));
+    return rcpp_result_gen;
+END_RCPP
+}
 // logisticGenerate
 List logisticGenerate(NumericMatrix deltaR, NumericMatrix explanatoryVariablesR, List distributionParameters, StringVector distributionNames, unsigned int order);
 RcppExport SEXP positivemixtures_logisticGenerate(SEXP deltaRSEXP, SEXP explanatoryVariablesRSEXP, SEXP distributionParametersSEXP, SEXP distributionNamesSEXP, SEXP orderSEXP) {

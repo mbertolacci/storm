@@ -56,6 +56,10 @@ gevPwmEstimateConstrained <- function(x, supportLim) {
     .Call('positivemixtures_logisticMoments', PACKAGE = 'positivemixtures', distributionSamplesR, levels, order, conditionOnPositive)
 }
 
+.ptsm_logistic_fitted_delta <- function(deltaFamilyMeanSamples, levelDesignMatrixR, probsR) {
+    .Call('positivemixtures_logisticFittedDelta', PACKAGE = 'positivemixtures', deltaFamilyMeanSamples, levelDesignMatrixR, probsR)
+}
+
 .ptsm_logistic_generate <- function(deltaR, explanatoryVariablesR, distributionParameters, distributionNames, order) {
     .Call('positivemixtures_logisticGenerate', PACKAGE = 'positivemixtures', deltaR, explanatoryVariablesR, distributionParameters, distributionNames, order)
 }
