@@ -17,6 +17,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// logDensity
+double logDensity(double alpha, double logBeta, double logP, double q, double r);
+RcppExport SEXP positivemixtures_logDensity(SEXP alphaSEXP, SEXP logBetaSEXP, SEXP logPSEXP, SEXP qSEXP, SEXP rSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type logBeta(logBetaSEXP);
+    Rcpp::traits::input_parameter< double >::type logP(logPSEXP);
+    Rcpp::traits::input_parameter< double >::type q(qSEXP);
+    Rcpp::traits::input_parameter< double >::type r(rSEXP);
+    rcpp_result_gen = Rcpp::wrap(logDensity(alpha, logBeta, logP, q, r));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rGammaShapeConjugateR
 NumericVector rGammaShapeConjugateR(unsigned int n, double beta, double logP, double q, double r, Rcpp::Nullable<NumericVector> x, Rcpp::Nullable<NumericVector> prior);
 RcppExport SEXP positivemixtures_rGammaShapeConjugateR(SEXP nSEXP, SEXP betaSEXP, SEXP logPSEXP, SEXP qSEXP, SEXP rSEXP, SEXP xSEXP, SEXP priorSEXP) {

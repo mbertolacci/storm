@@ -5,6 +5,10 @@ idigamma <- function(y) {
     .Call('positivemixtures_idigamma', PACKAGE = 'positivemixtures', y)
 }
 
+dgammashapeconjugate <- function(alpha, logBeta, logP, q, r) {
+    .Call('positivemixtures_logDensity', PACKAGE = 'positivemixtures', alpha, logBeta, logP, q, r)
+}
+
 rgammashapeconjugate <- function(n, beta, logP = NA_real_, q = NA_real_, r = NA_real_, x = NULL, prior = NULL) {
     .Call('positivemixtures_rGammaShapeConjugateR', PACKAGE = 'positivemixtures', n, beta, logP, q, r, x, prior)
 }

@@ -30,6 +30,7 @@ double idigamma(double y) {
     return x;
 }
 
+// [[Rcpp::export(name="dgammashapeconjugate")]]
 double logDensity(double alpha, double logBeta, double logP, double q, double r) {
     return (alpha - 1) * logP - alpha * q * logBeta - r * lgamma(alpha);
 }
