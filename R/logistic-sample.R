@@ -420,9 +420,12 @@ ptsm_logistic_sample_y <- function(sampler_results, y_sample_thinning = 1) {
     )
 
     output <- list()
-    output$y_sample <- t(.levels_from_list(lapply(inner_results$panel_y_sample, t), data_levels))
+    output$y_sample <- .levels_from_list(inner_results$panel_y_sample, data_levels, 1)
+    inner_results$panel_y_sample <- NULL
     output$y_sample <- coda::mcmc(output$y_sample, start = 1, thin = y_sample_thinning)
-    output$y_sample_z <- t(.levels_from_list(lapply(inner_results$panel_y_sample_z, t), data_levels))
+
+    output$y_sample_z <- .levels_from_list(inner_results$panel_y_sample_z, data_levels, 1)
+    inner_results$panel_y_sample_z <- NULL
     output$y_sample_z <- coda::mcmc(output$y_sample_z, start = 1, thin = y_sample_thinning)
 
     return(output)
