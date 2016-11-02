@@ -122,6 +122,7 @@ ptsm_logistic_fitted_delta <- function(sampler_results, probs = c(0.025, 0.1, 0.
 
     delta_fitted <- .ptsm_logistic_fitted_delta(delta_mean_sample, level_design_matrix, probs)
     delta_fitted <- aperm(delta_fitted, c(4, 2, 3, 1))
+    delta_fitted <- provideDimnames(delta_fitted)
     dimnames(delta_fitted)[[1]] <- dimnames(sampler_results$sample$delta_family_mean)[[1]]
     dimnames(delta_fitted)[[2]] <- dimnames(sampler_results$sample$delta_family_mean)[[2]]
     dimnames(delta_fitted)[[3]] <- c(
