@@ -13,9 +13,9 @@ class LogisticParameterSampler {
     void resetAcceptCounts();
 
     arma::mat sample(
-        const arma::mat deltaCurrent, const arma::mat pCurrent,
-        const arma::ucolvec zCurrent, const arma::mat explanatoryVariables,
-        const LogisticParameterPrior prior
+        const arma::mat& deltaCurrent, const arma::mat& pCurrent,
+        const arma::ucolvec& zCurrent, const arma::mat& explanatoryVariables,
+        const LogisticParameterPrior& prior
     );
 
  private:
@@ -24,15 +24,15 @@ class LogisticParameterSampler {
     bool isPolson_;
 
     arma::mat samplePolson(
-        const arma::mat deltaCurrent, const arma::mat pCurrent,
-        const arma::ucolvec zCurrent, const arma::mat explanatoryVariables,
-        const LogisticParameterPrior prior
+        const arma::mat& deltaCurrent, const arma::mat& pCurrent,
+        const arma::ucolvec& zCurrent, const arma::mat& explanatoryVariables,
+        const LogisticParameterPrior& prior
     );
 
     arma::mat sampleMetropolisHastings(
-        const arma::mat deltaCurrent, const arma::mat pCurrent,
-        const arma::ucolvec zCurrent, const arma::mat explanatoryVariables,
-        const LogisticParameterPrior prior
+        const arma::mat& deltaCurrent, const arma::mat& pCurrent,
+        const arma::ucolvec& zCurrent, const arma::mat& explanatoryVariables,
+        const LogisticParameterPrior& prior
     );
 };
 
