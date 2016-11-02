@@ -156,7 +156,7 @@ void LogisticSampler::next() {
     // Sample the parameters of the mixture distributions
     sampleDistributions_();
 
-    #pragma omp parallel for schedule(dynamic, 1)
+    #pragma omp parallel for
     for (unsigned int level = 0; level < nLevels_; ++level) {
         sampleLevel_(level);
     }
