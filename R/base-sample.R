@@ -63,10 +63,8 @@
     })
 }
 
-.mixture_initial_values <- function(y, distributions, method = 'cdf') {
+.mixture_initial_z_from_method <- function(y, n_components, method) {
     z_start <- rep(1, length(y))
-
-    n_components <- length(distributions)
 
     if (method == 'cdf') {
         futile.logger::flog.debug('Calculating empirical cdf')
@@ -97,6 +95,34 @@
         z_start[y == 0] <- 1
     }
 
+    return(z_start)
+}
+
+# Supposing that all components are equally likely a-priori, draw z|y, theta
+.mixture_initial_z_from_distributions <- function(y, distributions, distributions_start) {
+    z_start <- rep(1, length(y))
+    n_components <- length(distributions)
+
+    for (i in 1 : length(y)) {
+        if (is.na(y[i])) {
+            z_start[i] <- sample.int(n_components + 1, 1)
+        } else if (y[i] == 0) {
+            z_start[i] <- 1
+        } else {
+            p <- rep(0, n_components)
+            for (k in 1 : n_components) {
+                p[k] <- dgamma(y[i], distributions_start[[k]][1], scale = distributions_start[[k]][2])
+            }
+            z_start[i] <- 1 + sample.int(n_components, 1, prob = p)
+        }
+    }
+    z_start[y == 0] <- 1
+
+    return(z_start)
+}
+
+.mixture_initial_distributions_from_z <- function(y, z_start, distributions) {
+    n_components <- length(distributions)
     distributions_start <- list()
     for (i in 1 : n_components) {
         futile.logger::flog.debug('Finding starting values for mixture component %d', i)
@@ -117,5 +143,39 @@
     }
     futile.logger::flog.debug('Starting parameter values are %s', list(distributions_start))
 
-    return (list(z = z_start, distributions = distributions_start))
+    return(distributions_start)
+}
+
+.mixture_initial_values <- function(y, distributions, starting_values = 'cdf') {
+    method <- NULL
+    if (class(starting_values) == 'character') {
+        method <- starting_values
+        starting_values <- list()
+    }
+
+    n_components <- length(distributions)
+
+    if (!is.null(method)) {
+        starting_values$z <- .mixture_initial_z_from_method(y, n_components, method)
+    }
+
+    if (is.null(starting_values$z) && !is.null(starting_values$distributions)) {
+        # Start with distributions, find z
+        starting_values$z <- .mixture_initial_z_from_distributions(
+            y,
+            distributions,
+            starting_values$distributions
+        )
+    } else if (!is.null(starting_values$z) && is.null(starting_values$distributions)) {
+        # Start with z, find distributions
+        starting_values$distributions <- .mixture_initial_distributions_from_z(
+            y,
+            starting_values$z,
+            distributions
+        )
+    } else if (is.null(starting_values$z) && is.null(starting_values$distributions)) {
+        stop('no starting values given and no method provided')
+    }
+
+    return(starting_values)
 }
