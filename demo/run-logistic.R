@@ -1,93 +1,99 @@
 library(coda)
 devtools::load_all('positivemixtures')
 
-cat('\n--------- Gamma / Gamma (single, 0-order)\n')
+# cat('\n--------- Gamma / Gamma (single, 0-order)\n')
 
+# distributions <- c('gamma', 'gamma')
+# input_data <- data.frame(t=seq(0, 1, length.out=2500))
+
+# output <- ptsm_logistic_generate(
+#     input_data,
+#     ~ t, order=0,
+#     distributions,
+#     component_parameters=list(c(1.3, 1), c(1.18, 11)),
+#     delta=rbind(
+#         c(1, 0.5),
+#         c(1, -0.5)
+#     )
+# )
+
+# data <- input_data
+# data$y <- output$data$y
+
+# results <- ptsm_logistic_sample(
+#     n_samples=1000, burn_in=1000,
+#     data, y ~ t, order=0,
+#     distributions=distributions,
+#     theta_sample_thinning=1, z_sample_thinning=0, y_missing_sample_thinning=0,
+#     verbose=0
+# )
+# print(colMeans(results$sample$distribution[[1]]))
+# print(colMeans(results$sample$distribution[[2]]))
+
+# cat('\n--------- Gamma / Gamma (single, 1-order)\n')
+
+set.seed(100)
+
+# distributions <- c('gamma', 'gamma')
+# input_data <- data.frame(t=seq(0, 1, length.out=1000))
+
+# output <- ptsm_logistic_generate(
+#     input_data,
+#     ~ t, order=1,
+#     distributions,
+#     component_parameters=list(c(1.3, 1), c(1.18, 11)),
+#     delta=rbind(
+#         c(1, 1, 0.5, 0),
+#         c(1, -1, 0, 0.5)
+#     )
+# )
+
+# data <- input_data
+# data$y <- output$data$y
+
+# results <- ptsm_logistic_sample(
+#     n_samples=1000, burn_in=1000,
+#     data, y ~ t, order=1,
+#     distributions=distributions,
+#     verbose=0
+# )
+# print(colMeans(results$sample$distribution[[1]]))
+# print(colMeans(results$sample$distribution[[2]]))
+# print(apply(results$sample$delta, 2 : 3, mean))
+
+cat('\n--------- Gamma / Gamma (panel)\n')
+
+n_per_level <- 1000
+n_levels <- 5
 distributions <- c('gamma', 'gamma')
-input_data <- data.frame(t=seq(0, 1, length.out=2500))
+input_data <- data.frame(
+    t=rep(seq(0, 1, length.out=n_per_level), n_levels),
+    group=factor(sapply(1 : n_levels, rep, n_per_level))
+)
 
 output <- ptsm_logistic_generate(
     input_data,
-    ~ t, order=0,
+    ~ t,
     distributions,
     component_parameters=list(c(1.3, 1), c(1.18, 11)),
-    delta=rbind(
-        c(1, 0.5),
-        c(1, -0.5)
-    )
+    delta_family_mean=matrix(0, nrow=2, ncol=4),
+    delta_family_variance=matrix(1, nrow=2, ncol=4),
+    panel_variable='group'
 )
 
 data <- input_data
 data$y <- output$data$y
 
 results <- ptsm_logistic_sample(
-    n_samples=1000, burn_in=1000,
-    data, y ~ t, order=0,
+    n_samples=10000, burn_in=1000,
+    data, y ~ t,
     distributions=distributions,
-    theta_sample_thinning=1, z_sample_thinning=0, y_missing_sample_thinning=0,
-    verbose=0
+    panel_variable='group'
 )
 print(colMeans(results$sample$distribution[[1]]))
-
-cat('\n--------- Gamma / Gamma (single, 1-order)\n')
-
-distributions <- c('gamma', 'gamma')
-input_data <- data.frame(t=seq(0, 1, length.out=2500))
-
-output <- ptsm_logistic_generate(
-    input_data,
-    ~ t, order=1,
-    distributions,
-    component_parameters=list(c(1.3, 1), c(1.18, 11)),
-    delta=rbind(
-        c(1, 1, 0.5, 0),
-        c(1, -1, 0, 0.5)
-    )
-)
-
-data <- input_data
-data$y <- output$data$y
-
-sample <- ptsm_logistic_sample(
-    n_samples=5000, burn_in=1000,
-    data, y ~ t, order=1,
-    distributions=distributions,
-    theta_sample_thinning=1, z_sample_thinning=0, y_missing_sample_thinning=0,
-    verbose=0
-)
-print(colMeans(sample$theta_sample))
-
-# cat('\n--------- Gamma / Gamma (panel)\n')
-
-# n_per_level <- 1000
-# n_levels <- 5
-# input_data <- data.frame(
-#     t=rep(seq(0, 1, length.out=n_per_level), n_levels),
-#     group=factor(sapply(1 : n_levels, rep, n_per_level))
-# )
-
-# output <- ptsm_logistic_generate(
-#     input_data,
-#     ~ t,
-#     distributions,
-#     component_parameters=list(c(1.3, 1), c(1.18, 11)),
-#     delta_family_mean=matrix(0, nrow=2, ncol=4),
-#     delta_family_variance=matrix(1, nrow=2, ncol=4),
-#     panel_variable='group'
-# )
-
-# data <- input_data
-# data$y <- output$data$y
-
-# sample <- ptsm_logistic_sample(
-#     n_samples=5000, burn_in=1000,
-#     data, y ~ t,
-#     distributions=distributions,
-#     theta_sample_thinning=1, z_sample_thinning=0, y_missing_sample_thinning=0,
-#     panel_variable='group',
-#     verbose=0
-# )
-# print(colMeans(sample$theta_sample)[1 : 4])
+print(colMeans(results$sample$distribution[[2]]))
+# print(apply(results$sample$delta, 2 : 4, mean))
+print(apply(results$sample$delta_family_mean, 2 : 4, mean))
 
 # hpd <- HPDinterval(sample$theta_sample)
 # for (i in 1 : (n_levels + 2)) {

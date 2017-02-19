@@ -11,17 +11,38 @@ data <- ptsm_independent_generate(
     list(c(2, 1), c(0.5, 15))
 )
 
-results <- ptsm_independent_sample(
-    n_samples=5000, burn_in=1000,
-    y=c(data$y, rep(NA, 100)),
-    distributions=distributions,
-    thinning=list(distributions=1, p=1, z=1, y_missing=1),
-    progress=TRUE
+sampling_scheme <- list(
+    # distributions = list(
+    #     list(
+    #         type = 'metropolis_hastings', use_mle = TRUE, use_observed_information = TRUE,
+    #         observed_information_inflation_factor = 4
+    #     ),
+    #     list(
+    #         type = 'metropolis_hastings', use_mle = TRUE, use_observed_information = TRUE,
+    #         observed_information_inflation_factor = 0.025
+    #     )
+    # )
 )
 
-print(colMeans(results$sample$distribution[[1]]))
-print(colMeans(results$sample$distribution[[2]]))
+results <- ptsm_independent_sample(
+    n_samples = 10000, burn_in = 1000,
+    y = data$y,
+    distributions = distributions,
+    thinning = list(distributions = 1, p = 1, z = 1, y_missing = 1),
+    sampling_scheme = sampling_scheme,
+    starting_values = 'bins',
+    progress = TRUE
+)
+
+library(coda)
+
+print(matrixStats::colQuantiles(results$sample$distribution[[1]], probs=c(0.025, 0.25, 0.5, 0.75, 0.975)))
+print(matrixStats::colQuantiles(results$sample$distribution[[2]], probs=c(0.025, 0.25, 0.5, 0.75, 0.975)))
 print(colMeans(results$sample$p))
+
+print(rejectionRate(results$sample$distribution[[1]]))
+print(rejectionRate(results$sample$distribution[[2]]))
+
 
 cat('\n--------- Gengamma / Gengamma\n')
 
