@@ -7,13 +7,13 @@ ptsm_hmm_sample <- function(
 ) {
     start_time <- proc.time()
 
-    if (is.null(prior)) {
-        prior <- .default_distributions_prior(distributions)
-        prior$P <- matrix(rep(0.5, 9), nrow = 3)
-    }
-
     if (is.null(sampling_scheme)) {
         sampling_scheme <- .default_sampling_scheme(distributions)
+    }
+
+    if (is.null(prior)) {
+        prior <- .default_distributions_prior(distributions, sampling_scheme)
+        prior$P <- matrix(rep(0.5, 9), nrow = 3)
     }
 
     starting_values <- .mixture_initial_values(y, distributions)
@@ -25,7 +25,7 @@ ptsm_hmm_sample <- function(
     results <- .ptsm_hmm_sample(
         n_samples, burn_in, y,
         distributions, prior, sampling_scheme,
-        starting_values$z_start, starting_values$theta_start,
+        starting_values$z, starting_values$distributions,
         theta_sample_thinning, z_sample_thinning, y_missing_sample_thinning,
         verbose
     )
