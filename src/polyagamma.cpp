@@ -3,6 +3,7 @@
 #include "rng.hpp"
 
 using Rcpp::NumericVector;
+using ptsm::RNG;
 using ptsm::rng;
 
 // TODO(mgnb): pick this for maximum performance. There's a trade-off between the accept/reject behaviour and the
@@ -129,6 +130,7 @@ double rpolyagamma(unsigned int n, double z) {
 
 // [[Rcpp::export(name="rpolyagamma")]]
 NumericVector rpolyagammaVector(unsigned int length, unsigned int n, double z) {
+    RNG::initialise();
     NumericVector output(length);
     for (unsigned int i = 0; i < length; ++i) {
         output[i] = rpolyagamma(n, z);
