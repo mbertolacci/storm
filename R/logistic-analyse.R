@@ -42,7 +42,7 @@ ptsm_logistic_ergodic_p <- function(
 
         level_input <- c(level_input, list(list(
             design_matrix = design_matrix[level_indices, ],
-            delta = delta_samples[, , level_index, ],
+            delta = aperm(delta_samples[, , , level_index], c(2, 3, 1)),
             z0 = z0_samples[, level_index]
         )))
     }
@@ -54,12 +54,12 @@ ptsm_logistic_ergodic_p <- function(
 ptsm_logistic_predicted_p <- function(delta_samples, z0_samples, design_matrix, data_levels = NULL, order = 1) {
     if (is.null(data_levels)) {
         data_levels <- as.factor(rep('dummy', nrow(design_matrix)))
-        dim(delta_samples) <- c(dim(delta_samples)[1], dim(delta_samples)[2], 1, dim(delta_samples)[3])
+        dim(delta_samples) <- c(dim(delta_samples)[1], dim(delta_samples)[2], dim(delta_samples)[3], 1)
         z0_samples <- as.matrix(z0_samples)
     }
 
     stopifnot(length(dim(delta_samples)) == 4)
-    stopifnot(dim(delta_samples)[3] == nlevels(data_levels))
+    stopifnot(dim(delta_samples)[4] == nlevels(data_levels))
 
     stopifnot(length(dim(z0_samples)) == 2)
     stopifnot(ncol(z0_samples) == nlevels(data_levels))
@@ -67,7 +67,7 @@ ptsm_logistic_predicted_p <- function(delta_samples, z0_samples, design_matrix, 
     level_input <- .prepare_level_input(delta_samples, z0_samples, design_matrix, data_levels)
     p_results <- .ptsm_logistic_predicted_p(level_input, order)
 
-    n_components <- dim(delta_samples)[1] + 1
+    n_components <- dim(delta_samples)[2] + 1
     p_mat <- matrix(0, nrow = nrow(design_matrix), ncol = n_components)
     p_hat <- data.frame(p_mat)
     colnames(p_hat) <- paste0('p', 1 : n_components)
@@ -117,14 +117,14 @@ ptsm_logistic_moments <- function(
 ptsm_logistic_fitted_delta <- function(sampler_results, probs = c(0.025, 0.1, 0.5, 0.9, 0.975)) {
     stopifnot(length(dim(sampler_results$sample$delta_family_mean)) == 4)
 
-    delta_mean_sample <- aperm(sampler_results$sample$delta_family_mean, c(4, 3, 2, 1))
+    delta_mean_sample <- aperm(sampler_results$sample$delta_family_mean, c(1, 4, 3, 2))
     level_design_matrix <- sampler_results$level_design_matrix
 
     delta_fitted <- .ptsm_logistic_fitted_delta(delta_mean_sample, level_design_matrix, probs)
     delta_fitted <- aperm(delta_fitted, c(4, 2, 3, 1))
     delta_fitted <- provideDimnames(delta_fitted)
-    dimnames(delta_fitted)[[1]] <- dimnames(sampler_results$sample$delta_family_mean)[[1]]
-    dimnames(delta_fitted)[[2]] <- dimnames(sampler_results$sample$delta_family_mean)[[2]]
+    dimnames(delta_fitted)[[1]] <- dimnames(sampler_results$sample$delta_family_mean)[[2]]
+    dimnames(delta_fitted)[[2]] <- dimnames(sampler_results$sample$delta_family_mean)[[3]]
     dimnames(delta_fitted)[[3]] <- c(
         'mean',
         sprintf('q%.2f', 100 * probs)

@@ -22,6 +22,8 @@ class LogisticParameterPrior {
     arma::mat hessian(const arma::mat delta, const arma::mat means, const arma::mat variances) const;
     arma::mat hessian(const arma::mat delta) const;
 
+    arma::mat sample() const;
+
     LogisticParameterPrior withParameters(const arma::mat means, const arma::mat variances) {
         LogisticParameterPrior output(*this);
         output.means_ = means;

@@ -7,10 +7,12 @@ Author: Michael Bertolacci
 Maintainer: Michael Bertolacci <m.bertolacci@gmail.com>
 Description: Performs Bayesian estimation of mixture models for the positive real line
 License: MIT + file LICENSE
+Depends:
+    coda,
+    codamvt
 Imports:
     Rcpp (>= 0.12.0),
     RcppArmadillo,
-    coda,
     futile.logger
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 5.0.1

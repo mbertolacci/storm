@@ -116,8 +116,13 @@ void LogisticSamplerMPI::next() {
     }
 
     #pragma omp parallel for schedule(dynamic, 1)
-    for (unsigned int level = 0; level < nLevels_; ++level) {
+    for (unsigned int level = 0; level < nDataLevels_; ++level) {
         sampleLevel_(level);
+    }
+
+    #pragma omp parallel for
+    for (unsigned int level = nDataLevels_; level < nLevels_; ++level) {
+        sampleMissingLevel_(level);
     }
 
     if (rank_ == 0) {
@@ -157,7 +162,7 @@ void LogisticSamplerMPI::gather_() {
     ucolvec n(nComponents, arma::fill::zeros);
     colvec sumY(nComponents, arma::fill::zeros);
     colvec sumLogY(nComponents, arma::fill::zeros);
-    for (unsigned int level = 0; level < nLevels_; ++level) {
+    for (unsigned int level = 0; level < nDataLevels_; ++level) {
         for (unsigned int k = 0; k < nComponents; ++k) {
             ucolvec indices = find(panelZCurrent_[level] == k + 2);
             n[k] += indices.n_elem;

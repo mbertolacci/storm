@@ -27,13 +27,13 @@ LogisticSampler::LogisticSampler(
     List panelDeltaStart, NumericVector deltaFamilyMeanStart, NumericMatrix deltaFamilyVarianceStart,
     Rcpp::Nullable<NumericMatrix> deltaFamilyDesignMatrix
 ) : order_(order),
-    nLevels_(panelDesignMatrix.length()),
+    nDataLevels_(panelDesignMatrix.length()),
     logger_("ptsm.logistic_sample") {
     panelDesignMatrix_ = fieldFromList<mat>(panelDesignMatrix);
     unsigned int nComponents = distributionNames.length();
     if (order > 0) {
         // Add room for the latent variable lags
-        for (unsigned int level = 0; level < nLevels_; ++level) {
+        for (unsigned int level = 0; level < nDataLevels_; ++level) {
             panelDesignMatrix_[level].resize(
                 panelDesignMatrix_[level].n_rows,
                 panelDesignMatrix_[level].n_cols + nComponents * order
@@ -82,10 +82,15 @@ LogisticSampler::LogisticSampler(
             familyTauSquaredPriorAlpha_ = as<mat>(logisticFamilyTauSquaredPrior["alpha"]);
             familyTauSquaredPriorBeta_ = as<mat>(logisticFamilyTauSquaredPrior["beta"]);
         }
+        nLevels_ = deltaFamilyDesignMatrix_.n_rows;
+        nMissingLevels_ = nLevels_ - nDataLevels_;
+    } else {
+        nLevels_ = nDataLevels_;
+        nMissingLevels_ = 0;
     }
 
     logisticParameterPrior_ = LogisticParameterPrior(logisticPriorConfiguration);
-    for (unsigned int level = 0; level < nLevels_; ++level) {
+    for (unsigned int level = 0; level < nDataLevels_; ++level) {
         panelLogisticParameterSampler_.push_back(
             LogisticParameterSampler(as<List>(as<List>(samplingSchemes["logistic"])[level]))
         );
@@ -93,13 +98,13 @@ LogisticSampler::LogisticSampler(
 
     // Data
     panelYCurrent_ = fieldFromList<colvec>(panelY);
-    panelLogYCurrent_ = field<colvec>(nLevels_);
-    for (unsigned int level = 0; level < nLevels_; ++level) {
+    panelLogYCurrent_ = field<colvec>(nDataLevels_);
+    for (unsigned int level = 0; level < nDataLevels_; ++level) {
         panelLogYCurrent_[level] = log(panelYCurrent_[level]);
     }
-    panelYMissingIndices_ = field<ucolvec>(nLevels_);
-    panelYIsMissing_ = std::vector< std::vector<bool> >(nLevels_);
-    for (unsigned int level = 0; level < nLevels_; ++level) {
+    panelYMissingIndices_ = field<ucolvec>(nDataLevels_);
+    panelYIsMissing_ = std::vector< std::vector<bool> >(nDataLevels_);
+    for (unsigned int level = 0; level < nDataLevels_; ++level) {
         MissingValuesPair missingValuesPair = findMissingValues(panelY[level]);
         panelYMissingIndices_[level] = missingValuesPair.first;
         panelYIsMissing_[level] = missingValuesPair.second;
@@ -114,12 +119,12 @@ LogisticSampler::LogisticSampler(
     deltaFamilyVarianceCurrent_ = as<mat>(deltaFamilyVarianceStart);
     deltaFamilyTauSquaredCurrent_ = mat(panelDeltaCurrent_.n_rows, nDeltas_);
 
-    panelPCurrent_ = field<mat>(nLevels_);
+    panelPCurrent_ = field<mat>(nDataLevels_);
 }
 
 void LogisticSampler::start() {
     #pragma omp parallel for
-    for (unsigned int level = 0; level < nLevels_; ++level) {
+    for (unsigned int level = 0; level < nDataLevels_; ++level) {
         sampleMissingY(
             panelYCurrent_[level], panelLogYCurrent_[level], panelYMissingIndices_[level], panelZCurrent_[level],
             getParameterBoundDistributions()
@@ -157,8 +162,13 @@ void LogisticSampler::next() {
     sampleDistributions_();
 
     #pragma omp parallel for
-    for (unsigned int level = 0; level < nLevels_; ++level) {
+    for (unsigned int level = 0; level < nDataLevels_; ++level) {
         sampleLevel_(level);
+    }
+
+    #pragma omp parallel for
+    for (unsigned int level = nDataLevels_; level < nLevels_; ++level) {
+        sampleMissingLevel_(level);
     }
 }
 
@@ -241,6 +251,26 @@ void LogisticSampler::sampleDistributions_() {
     }
 }
 
+LogisticParameterPrior LogisticSampler::getLevelLogisicPrior_(unsigned int level) {
+    mat deltaLevelMean(size(deltaFamilyVarianceCurrent_));
+    if (logisticParameterHierarchical_) {
+        rowvec deltaDesignLevelRow = deltaFamilyDesignMatrix_.row(level);
+        for (unsigned int i = 0; i < deltaLevelMean.n_rows; ++i) {
+            for (unsigned int j = 0; j < deltaLevelMean.n_cols; ++j) {
+                colvec deltaFamilyMeans = deltaFamilyMeanCurrent_.tube(i, j);
+                deltaLevelMean(i, j) = as_scalar(deltaDesignLevelRow * deltaFamilyMeans);
+            }
+        }
+    } else {
+        deltaLevelMean = deltaFamilyMeanCurrent_.slice(0);
+    }
+
+    return logisticParameterPrior_.withParameters(
+        deltaLevelMean,
+        deltaFamilyVarianceCurrent_
+    );
+}
+
 void LogisticSampler::sampleLevel_(unsigned int level) {
     // Sample \bm{z}
     panelZ0Current_[level] = sampleSingleZ(panelPCurrent_[level].row(0).t());
@@ -265,32 +295,20 @@ void LogisticSampler::sampleLevel_(unsigned int level) {
         }
     }
 
-    mat deltaLevelMean(size(deltaFamilyVarianceCurrent_));
-    if (logisticParameterHierarchical_) {
-        rowvec deltaDesignLevelRow = deltaFamilyDesignMatrix_.row(level);
-        for (unsigned int i = 0; i < deltaLevelMean.n_rows; ++i) {
-            for (unsigned int j = 0; j < deltaLevelMean.n_cols; ++j) {
-                colvec deltaFamilyMeans = deltaFamilyMeanCurrent_.tube(i, j);
-                deltaLevelMean(i, j) = as_scalar(deltaDesignLevelRow * deltaFamilyMeans);
-            }
-        }
-    } else {
-        deltaLevelMean = deltaFamilyMeanCurrent_.slice(0);
-    }
-
     // Sample \Delta_s
-    LogisticParameterPrior boundLogisticParameterPrior = logisticParameterPrior_.withParameters(
-        deltaLevelMean,
-        deltaFamilyVarianceCurrent_
-    );
+    LogisticParameterPrior boundLogisticParameterPrior = getLevelLogisicPrior_(level);
     panelDeltaCurrent_.slice(level) = panelLogisticParameterSampler_[level].sample(
         panelDeltaCurrent_.slice(level),
-        panelPCurrent_[level],
         panelZCurrent_[level],
         panelDesignMatrix_[level],
         boundLogisticParameterPrior
     );
     panelPCurrent_[level] = getLogisticP(panelDeltaCurrent_.slice(level), panelDesignMatrix_[level]);
+}
+
+void LogisticSampler::sampleMissingLevel_(unsigned int level) {
+    LogisticParameterPrior boundLogisticParameterPrior = getLevelLogisicPrior_(level);
+    panelDeltaCurrent_.slice(level) = boundLogisticParameterPrior.sample();
 }
 
 std::vector<ParameterBoundDistribution> LogisticSampler::getParameterBoundDistributions() {

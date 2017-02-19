@@ -100,6 +100,8 @@ class LogisticSampler {
     std::vector<LogisticParameterSampler> panelLogisticParameterSampler_;
 
     // Easy accessors
+    unsigned int nDataLevels_;
+    unsigned int nMissingLevels_;
     unsigned int nLevels_;
     unsigned int nDeltas_;
 
@@ -127,7 +129,9 @@ class LogisticSampler {
     void sampleDeltaFamilyVariance_();
     void sampleDeltaFamilyTau_();
     void sampleDistributions_();
+    LogisticParameterPrior getLevelLogisicPrior_(unsigned int level);
     void sampleLevel_(unsigned int level);
+    void sampleMissingLevel_(unsigned int level);
 
     std::vector<ParameterBoundDistribution> getParameterBoundDistributions();
 };
@@ -143,7 +147,7 @@ class LogisticSample {
         bool progress = false, unsigned int check_interrupt_interval = 10
     ) {
         unsigned int nIterations = nSamples + burnIn;
-        unsigned int nLevels = sampler.getPanelDeltaCurrent().n_slices;
+        unsigned int nDataLevels = sampler.getPanelZ0Current().n_elem;
         unsigned int nComponents = sampler.getNComponents();
 
         if (distributionThinning > 0) {
@@ -190,21 +194,21 @@ class LogisticSample {
 
         if (z0Thinning > 0) {
             unsigned int nZ0Samples = ceil(static_cast<double>(nSamples) / static_cast<double>(z0Thinning));
-            panelZ0_ = arma::umat(nZ0Samples, nLevels);
+            panelZ0_ = arma::umat(nZ0Samples, nDataLevels);
         }
 
         if (zThinning > 0) {
             unsigned int nZSamples = ceil(static_cast<double>(nSamples) / static_cast<double>(zThinning));
-            panelZ_ = arma::field<arma::umat>(nLevels);
-            for (unsigned int level = 0; level < nLevels; ++level) {
+            panelZ_ = arma::field<arma::umat>(nDataLevels);
+            for (unsigned int level = 0; level < nDataLevels; ++level) {
                 panelZ_[level] = arma::umat(nZSamples, sampler.getPanelZCurrent(level).n_elem);
             }
         }
 
         if (yMissingThinning > 0) {
             unsigned int nYMissingSamples = ceil(static_cast<double>(nSamples) / static_cast<double>(yMissingThinning));
-            panelYMissing_ = arma::field<arma::mat>(nLevels);
-            for (unsigned int level = 0; level < nLevels; ++level) {
+            panelYMissing_ = arma::field<arma::mat>(nDataLevels);
+            for (unsigned int level = 0; level < nDataLevels; ++level) {
                 panelYMissing_[level] = arma::mat(nYMissingSamples, sampler.getPanelYMissingCurrent(level).n_elem);
             }
         }
@@ -251,14 +255,14 @@ class LogisticSample {
 
                 if (zThinning > 0 && (index % zThinning == 0)) {
                     unsigned int zSampleIndex = index / zThinning;
-                    for (unsigned int level = 0; level < nLevels; ++level) {
+                    for (unsigned int level = 0; level < nDataLevels; ++level) {
                         panelZ_[level].row(zSampleIndex) = sampler.getPanelZCurrent(level).t();
                     }
                 }
 
                 if (yMissingThinning > 0 && (index % yMissingThinning == 0)) {
                     int yMissingSampleIndex = index / yMissingThinning;
-                    for (unsigned int level = 0; level < nLevels; ++level) {
+                    for (unsigned int level = 0; level < nDataLevels; ++level) {
                         panelYMissing_[level].row(yMissingSampleIndex) = sampler.getPanelYMissingCurrent(level).t();
                     }
                 }

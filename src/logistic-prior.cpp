@@ -1,11 +1,14 @@
 #include <RcppArmadillo.h>
 #include "logistic-prior.hpp"
+#include "rng.hpp"
 
 using arma::colvec;
 using arma::mat;
 
 using Rcpp::as;
 using Rcpp::List;
+
+using ptsm::rng;
 
 LogisticParameterPrior::LogisticParameterPrior(List prior)
     : isUniform_(false) {
@@ -89,4 +92,12 @@ mat LogisticParameterPrior::hessian(const mat delta, const mat means, const mat 
 
 mat LogisticParameterPrior::hessian(const mat delta) const {
     return hessian(delta, means_, variances_);
+}
+
+mat LogisticParameterPrior::sample() const {
+    mat output(size(means_));
+    for (unsigned int i = 0; i < output.n_elem; ++i) {
+        output[i] = means_[i] + sqrt(variances_[i]) * rng.randn();
+    }
+    return output;
 }

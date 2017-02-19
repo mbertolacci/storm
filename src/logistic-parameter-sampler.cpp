@@ -71,7 +71,7 @@ colvec sampleDeltaComponent(
 
     mat invPriorVariance = diagmat(1 / priorVariance);
     // R'R = X' \Omega X + V^{-1}
-    mat R = chol(explanatoryVariables.t() * diagmat(omega) * explanatoryVariables + invPriorVariance);
+    mat R = chol(explanatoryVariables.t() * (explanatoryVariables.each_col() % omega) + invPriorVariance);
     // R'z = X' m_n + V^{-1} m_0
     colvec z = solve(R.t(), explanatoryVariables.t() * meanPart + invPriorVariance * priorMean);
     // R m = z
@@ -81,7 +81,7 @@ colvec sampleDeltaComponent(
 }
 
 mat LogisticParameterSampler::samplePolson(
-    const mat& deltaCurrent, const mat& pCurrent, const ucolvec& zCurrent, const mat& explanatoryVariables,
+    const mat& deltaCurrent, const ucolvec& zCurrent, const mat& explanatoryVariables,
     const LogisticParameterPrior& prior
 ) {
     mat deltaNew(deltaCurrent);
@@ -117,7 +117,7 @@ mat LogisticParameterSampler::samplePolson(
 }
 
 mat LogisticParameterSampler::sampleMetropolisHastings(
-    const mat& deltaCurrent, const mat& pCurrent, const ucolvec& zCurrent, const mat& explanatoryVariables,
+    const mat& deltaCurrent, const ucolvec& zCurrent, const mat& explanatoryVariables,
     const LogisticParameterPrior& prior
 ) {
     unsigned int nDeltas = deltaCurrent.n_cols;
@@ -173,12 +173,12 @@ mat LogisticParameterSampler::sampleMetropolisHastings(
 }
 
 mat LogisticParameterSampler::sample(
-    const mat& deltaCurrent, const mat& pCurrent, const ucolvec& zCurrent, const mat& explanatoryVariables,
+    const mat& deltaCurrent, const ucolvec& zCurrent, const mat& explanatoryVariables,
     const LogisticParameterPrior& prior
 ) {
     if (isPolson_) {
-        return samplePolson(deltaCurrent, pCurrent, zCurrent, explanatoryVariables, prior);
+        return samplePolson(deltaCurrent, zCurrent, explanatoryVariables, prior);
     } else {
-        return sampleMetropolisHastings(deltaCurrent, pCurrent, zCurrent, explanatoryVariables, prior);
+        return sampleMetropolisHastings(deltaCurrent, zCurrent, explanatoryVariables, prior);
     }
 }

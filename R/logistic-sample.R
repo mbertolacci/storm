@@ -197,15 +197,23 @@ ptsm_logistic_sample <- function(
             stop('Levels in data and level_data must be equal')
         }
 
-        if (nrow(level_data) != nlevels(level_data[[panel_variable]])) {
+        if (nrow(level_data[!is.na(level_data[[panel_variable]]), ]) != nlevels(level_data[[panel_variable]])) {
             stop('Number of rows in level_data should equal number of levels')
         }
 
         # Reorder the level data factor to be in the same order as the levels
+        na_level_rows <- level_data[is.na(level_data[[panel_variable]]), ]
         level_data <- level_data[match(levels(level_data[[panel_variable]]), level_data[[panel_variable]]), ]
+        level_data <- rbind(level_data, na_level_rows)
+
+        n_levels <- nrow(level_data)
+        n_missing_levels <- nrow(na_level_rows)
+    } else {
+        n_levels <- nlevels(data_levels)
+        n_missing_levels <- 0
     }
 
-    n_levels <- nlevels(data_levels)
+    n_data_levels <- n_levels - n_missing_levels
     n_components <- length(distributions)
     n_deltas <- .get_formula_n_terms(formula) + n_components * order
     n_level_vars <- 1
@@ -221,18 +229,16 @@ ptsm_logistic_sample <- function(
         sampling_scheme$distributions <- .default_sampling_scheme(distributions)
     }
     if (is.null(sampling_scheme$logistic)) {
-        sampling_scheme$logistic <- rep(list(list()), n_levels)
+        sampling_scheme$logistic <- rep(list(list()), n_data_levels)
     }
-    stopifnot(.validate_sampling_scheme(sampling_scheme, n_levels))
+    stopifnot(.validate_sampling_scheme(sampling_scheme, n_data_levels))
 
-    prior <- .get_logistic_sample_prior(prior, distributions, n_levels, n_deltas, n_level_vars, sampling_scheme)
+    prior <- .get_logistic_sample_prior(prior, distributions, n_data_levels, n_deltas, n_level_vars, sampling_scheme)
 
     futile.logger::flog.debug('Getting starting values', name = 'ptsm.logistic_sample')
     all_y <- data[[all.vars(formula)[1]]]
 
-    if (class(starting_values) == 'character') {
-        starting_values <- .mixture_initial_values(all_y, distributions, method = starting_values)
-    }
+    starting_values <- .mixture_initial_values(all_y, distributions, starting_values)
 
     futile.logger::flog.debug('Calculating design matrix', name = 'ptsm.logistic_sample')
     design_matrix <- .get_logistic_design_matrix(data, formula, ...)
@@ -242,7 +248,7 @@ ptsm_logistic_sample <- function(
 
     futile.logger::flog.trace('Preparing data for sampler', name = 'ptsm.logistic_sample')
     panel_z_start <- .levels_to_list(starting_values$z, data_levels)
-    panel_z0_start <- rep(1, n_levels)
+    panel_z0_start <- rep(1, n_data_levels)
     panel_design_matrix <- .levels_to_list(design_matrix, data_levels)
     panel_y <- .levels_to_list(all_y, data_levels)
     if (!is.null(starting_values$delta)) {
@@ -324,13 +330,21 @@ ptsm_logistic_sample <- function(
             results$sample[['delta']] <- provideDimnames(results$sample[['delta']])
             dimnames(results$sample[['delta']])[[1]] <- paste0('k=', 2 : (n_components + 1))
             dimnames(results$sample[['delta']])[[2]] <- delta_param_names
+            results$sample[['delta']] <- aperm(results$sample[['delta']], c(3, 1, 2))
         } else {
             results$sample[['delta']] <- provideDimnames(results$sample[['delta']])
             dimnames(results$sample[['delta']])[[1]] <- paste0('k=', 2 : (n_components + 1))
             dimnames(results$sample[['delta']])[[2]] <- delta_param_names
-            dimnames(results$sample[['delta']])[[3]] <- levels(data[[panel_variable]])
+            if (is.null(level_data)) {
+                dimnames(results$sample[['delta']])[[3]] <- levels(data[[panel_variable]])
+            } else {
+                dimnames(results$sample[['delta']])[[3]] <- level_data[[panel_variable]]
+            }
             dimnames(results$sample[['delta']])[[4]] <- NULL
+
+            results$sample[['delta']] <- aperm(results$sample[['delta']], c(4, 1, 2, 3))
         }
+        results$sample[['delta']] <- codamvt::mcmcm(results$sample[['delta']], start = 1, thin = thinning$delta)
     }
 
     if (!is.null(results$sample[['delta_family_mean']]) && prior$logistic$type == 'hierarchical') {
@@ -339,11 +353,19 @@ ptsm_logistic_sample <- function(
         dimnames(results$sample[['delta_family_mean']])[[2]] <- delta_param_names
         dimnames(results$sample[['delta_family_mean']])[[3]] <- colnames(level_design_matrix)
         dimnames(results$sample[['delta_family_mean']])[[4]] <- NULL
+        results$sample[['delta_family_mean']] <- codamvt::mcmcm(
+            aperm(results$sample[['delta_family_mean']], c(4, 1, 2, 3)),
+            start = 1, thin = thinning$family
+        )
 
         results$sample[['delta_family_variance']] <- provideDimnames(results$sample[['delta_family_variance']])
         dimnames(results$sample[['delta_family_variance']])[[1]] <- paste0('k=', 2 : (n_components + 1))
         dimnames(results$sample[['delta_family_variance']])[[2]] <- delta_param_names
         dimnames(results$sample[['delta_family_variance']])[[3]] <- NULL
+        results$sample[['delta_family_variance']] <- codamvt::mcmcm(
+            aperm(results$sample[['delta_family_variance']], c(3, 1, 2)),
+            start = 1, thin = thinning$family
+        )
     }
 
     # Unroll the panel level samples into their flat version
@@ -385,36 +407,33 @@ ptsm_logistic_sample <- function(
 }
 
 #' @export
-ptsm_logistic_sample_y <- function(sampler_results, y_sample_thinning = 1) {
+ptsm_logistic_sample_y <- function(sampler_results) {
     if (is.null(sampler_results$panel_variable)) {
         data_levels <- factor(rep('dummy', nrow(sampler_results$data)))
         original_dim <- dim(sampler_results$sample$delta)
 
-        dim(sampler_results$sample$delta) <- c(original_dim[1], original_dim[2], 1, original_dim[3])
+        dim(sampler_results$sample$delta) <- c(original_dim[1], original_dim[2], original_dim[3], 1)
     } else {
         data_levels <- sampler_results$data[[sampler_results$panel_variable]]
     }
 
     panel_design_matrix <- .levels_to_list(sampler_results$design_matrix, data_levels)
     panel_delta_sample <- lapply(1 : nlevels(data_levels), function(level_index) {
-        # HACK(mgnb): fix this crappy thinning routine
-        n_iterations <- dim(sampler_results$sample$delta)[4]
-        sampler_results$sample$delta[, , level_index, ((1 : n_iterations) - 1) %% y_sample_thinning == 0]
+        # aperm puts the iteration index last, which is useful inside the function
+        aperm(
+            sampler_results$sample$delta[, , , level_index],
+            c(2, 3, 1)
+        )
     })
     panel_z0_sample <- lapply(1 : nlevels(data_levels), function(level_index) {
-        window(sampler_results$sample$z0[, level_index], 1, thin = y_sample_thinning)
+        sampler_results$sample$z0[, level_index]
     })
-
-    thinned_distribution_sample <- list()
-    for (k in 1 : length(sampler_results$sample$distribution)) {
-        thinned_distribution_sample[[k]] <- window(sampler_results$sample$distribution[[k]], 1, thin = y_sample_thinning)
-    }
 
     inner_results <- .ptsm_logistic_sample_y(
         panel_design_matrix,
         panel_delta_sample,
         panel_z0_sample,
-        thinned_distribution_sample,
+        sampler_results$sample$distribution,
         sampler_results$distributions,
         sampler_results$order
     )
@@ -422,11 +441,33 @@ ptsm_logistic_sample_y <- function(sampler_results, y_sample_thinning = 1) {
     output <- list()
     output$y_sample <- .levels_from_list(inner_results$panel_y_sample, data_levels, 1)
     inner_results$panel_y_sample <- NULL
-    output$y_sample <- coda::mcmc(output$y_sample, start = 1, thin = y_sample_thinning)
+    output$y_sample <- coda::mcmc(
+        output$y_sample,
+        start = start(sampler_results$sample$delta),
+        thin = thin(sampler_results$sample$delta)
+    )
 
     output$y_sample_z <- .levels_from_list(inner_results$panel_y_sample_z, data_levels, 1)
     inner_results$panel_y_sample_z <- NULL
-    output$y_sample_z <- coda::mcmc(output$y_sample_z, start = 1, thin = y_sample_thinning)
+    output$y_sample_z <- coda::mcmc(
+        output$y_sample_z,
+        start = start(sampler_results$sample$delta),
+        thin = thin(sampler_results$sample$delta)
+    )
+
+    class(output) <- 'ptsmlogistic'
 
     return(output)
+}
+
+#' @export
+window.ptsmlogistic <- function(x, ...) {
+    for (k in 1 : length(x[['sample']][['distribution']])) {
+        x[['sample']][['distribution']][[k]] <- window(x[['sample']][['distribution']][[k]], ...)
+    }
+    x[['sample']][['delta']] <- window(x[['sample']][['delta']], ...)
+    x[['sample']][['z0']] <- window(x[['sample']][['z0']], ...)
+    x[['sample']][['delta_family_mean']] <- window(x[['sample']][['delta_family_mean']], ...)
+    x[['sample']][['delta_family_variance']] <- window(x[['sample']][['delta_family_variance']], ...)
+    return(x)
 }
