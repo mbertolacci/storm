@@ -98,8 +98,8 @@ arma::colvec ParameterSampler::sampleGibbs_(
         priorAlpha_[2] + n
     );
     output[1] = 1 / rng.randg(
-        priorBeta_[0] + output[0] * n,
-        priorBeta_[1] / (1 + priorBeta_[1] * boundDistribution.getSumY())
+        priorBeta_[0] + output[0] * (priorAlpha_[1] + n),
+        1 / (priorBeta_[1] + boundDistribution.getSumY())
     );
 
     return output;

@@ -34,7 +34,7 @@
 
         if (distribution == 'gamma') {
             if (sampling_schemes[[i]]$type == 'gibbs') {
-                return(list(alpha = c(1, 1, 1), beta = c(1.1, 0.5)))
+                return(list(alpha = c(0, 1, 1), beta = c(1.1, 2)))
             }
             return(list(type = 'uniform', bounds = matrix(c(0, 0, 1000, 1000), nrow = 2)))
         } else if (distribution == 'gengamma') {
