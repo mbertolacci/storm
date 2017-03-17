@@ -121,7 +121,6 @@ class LogisticSampler {
 
     // Computed from current state
     arma::field<arma::colvec> panelLogYCurrent_;
-    arma::field<arma::mat> panelPCurrent_;
 
     ptsm::Logger logger_;
 

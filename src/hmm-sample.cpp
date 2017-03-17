@@ -51,6 +51,18 @@ mat samplePHMM(ucolvec zCurrent, ucolvec zPrevious, mat pPrior) {
     return P;
 }
 
+unsigned int sampleSingleZ2(const colvec &p) {
+    double u = rng.randu();
+    colvec pNormalised = p / arma::sum(p);
+    for (unsigned int k = 0; k < pNormalised.n_elem; ++k) {
+        if (u < pNormalised[k]) {
+            return k + 1;
+        }
+        u -= pNormalised[k];
+    }
+    return pNormalised.n_elem - 1;
+}
+
 // [[Rcpp::export(name=".ptsm_hmm_sample")]]
 List hmmSample(
     unsigned int nSamples, unsigned int burnIn,
@@ -67,6 +79,7 @@ List hmmSample(
     // Priors and samplers
     Distribution lowerDistribution(distributionNames[0]);
     Distribution upperDistribution(distributionNames[1]);
+
     ParameterSampler lowerSampler(priors[0], samplingSchemes[0], lowerDistribution);
     ParameterSampler upperSampler(priors[1], samplingSchemes[1], upperDistribution);
 
@@ -137,19 +150,42 @@ List hmmSample(
         thetaUpper = upperSampler.sample(thetaUpper, DataBoundDistribution(y, logY, zCurrent, 3, upperDistribution));
 
         // Sample \bm{z}
-        zPrevious[0] = sampleSingleZ({ pCurrent(zCurrent[0] - 1, 1), pCurrent(zCurrent[0] - 1, 2) });
-
+        std::vector<ParameterBoundDistribution> boundDistributions = {
+            ParameterBoundDistribution(thetaLower, lowerDistribution),
+            ParameterBoundDistribution(thetaUpper, upperDistribution)
+        };
+        // Compute p(z|y_{0,...,t}, \theta), not including missing
+        mat pMarginal(y.n_elem, 3, arma::fill::zeros);
         for (unsigned int i = 0; i < zCurrent.n_elem; ++i) {
-            pCurrentGivenZ(i, 0) = pCurrent(zPrevious[i] - 1, 1);
-            pCurrentGivenZ(i, 1) = pCurrent(zPrevious[i] - 1, 2);
-        }
-        zCurrent = sampleZ(
-            pCurrentGivenZ, y, yIsMissing,
-            {
-                ParameterBoundDistribution(thetaLower, lowerDistribution),
-                ParameterBoundDistribution(thetaUpper, upperDistribution)
+            if (y[i] == 0 && !yIsMissing[i]) {
+                pMarginal(i, 0) = 1;
+            } else {
+                for (unsigned int toState = 0; toState < 3; ++toState) {
+                    for (unsigned int fromState = 0; fromState < 3; ++fromState) {
+                        if (i == 0) {
+                            pMarginal(i, toState) += pCurrent(fromState, toState) / 3.0;
+                        } else {
+                            pMarginal(i, toState) += pCurrent(fromState, toState) * pMarginal(i - 1, fromState);
+                        }
+                    }
+                }
+                if (!yIsMissing[i]) {
+                    // We know at this point that y is not 0
+                    pMarginal(i, 0) = 0;
+                    for (unsigned int state = 1; state < 3; ++state) {
+                        pMarginal(i, state) *= boundDistributions[state - 1].pdf(y[i]);
+                    }
+                    pMarginal.row(i) /= arma::sum(pMarginal.row(i));
+                }
             }
-        );
+        }
+        zCurrent[zCurrent.n_elem - 1] = sampleSingleZ2(pMarginal.row(zCurrent.n_elem - 1).t());
+        for (int i = zCurrent.n_elem - 2; i >= 0; --i) {
+            zCurrent[i] = sampleSingleZ2(
+                pMarginal.row(i).t() % pCurrent.col(zCurrent[i + 1] - 1)
+            );
+        }
+        zPrevious[0] = sampleSingleZ2(pCurrent.col(zCurrent[0] - 1) / 3.0);
 
         std::copy(zCurrent.begin(), zCurrent.end() - 1, zPrevious.begin() + 1);
 

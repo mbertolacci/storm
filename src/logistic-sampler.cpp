@@ -20,6 +20,38 @@ using Rcpp::NumericMatrix;
 using Rcpp::NumericVector;
 using Rcpp::StringVector;
 
+unsigned int sampleSingleZ3(const colvec &p) {
+    double u = rng.randu();
+    colvec pNormalised = p / arma::sum(p);
+    for (unsigned int k = 0; k < pNormalised.n_elem; ++k) {
+        if (u < pNormalised[k]) {
+            return k + 1;
+        }
+        u -= pNormalised[k];
+    }
+    return pNormalised.n_elem - 1;
+}
+
+cube getLogisticPTransition(const mat delta, const mat designMatrixBase) {
+    unsigned int nStates = delta.n_rows + 1;
+    mat designMatrix(designMatrixBase);
+    cube pTransition(designMatrix.n_rows, nStates, nStates);
+    unsigned int nDeltas = designMatrix.n_cols;
+
+    for (unsigned int fromState = 0; fromState < nStates; ++fromState) {
+        for (unsigned int k = 0; k < nStates - 1; ++k) {
+            designMatrix.col(nDeltas + k - nStates + 1).fill(0);
+        }
+        if (fromState > 0) {
+            designMatrix.col(nDeltas + fromState - nStates).fill(1);
+        }
+        pTransition.slice(fromState).cols(1, nStates - 1) = getLogisticP(delta, designMatrix);
+        pTransition.slice(fromState).col(0) = 1.0 - arma::sum(pTransition.slice(fromState).cols(1, nStates - 1), 1);
+    }
+
+    return pTransition;
+}
+
 LogisticSampler::LogisticSampler(
     List panelY, List panelDesignMatrix, unsigned int order,
     StringVector distributionNames, List priors, List samplingSchemes,
@@ -118,8 +150,6 @@ LogisticSampler::LogisticSampler(
     deltaFamilyMeanCurrent_ = as<cube>(deltaFamilyMeanStart);
     deltaFamilyVarianceCurrent_ = as<mat>(deltaFamilyVarianceStart);
     deltaFamilyTauSquaredCurrent_ = mat(panelDeltaCurrent_.n_rows, nDeltas_);
-
-    panelPCurrent_ = field<mat>(nDataLevels_);
 }
 
 void LogisticSampler::start() {
@@ -139,8 +169,6 @@ void LogisticSampler::start() {
                 }
             }
         }
-
-        panelPCurrent_[level] = getLogisticP(panelDeltaCurrent_.slice(level), panelDesignMatrix_[level]);
     }
 }
 
@@ -273,16 +301,60 @@ LogisticParameterPrior LogisticSampler::getLevelLogisicPrior_(unsigned int level
 
 void LogisticSampler::sampleLevel_(unsigned int level) {
     // Sample \bm{z}
-    panelZ0Current_[level] = sampleSingleZ(panelPCurrent_[level].row(0).t());
-    panelZCurrent_[level] = sampleZ(
-        panelPCurrent_[level], panelYCurrent_[level], panelYIsMissing_[level],
-        getParameterBoundDistributions()
-    );
+    auto boundDistributions = getParameterBoundDistributions();
+    if (order_ == 0) {
+        auto pCurrent = getLogisticP(panelDeltaCurrent_.slice(level), panelDesignMatrix_[level]);
+        panelZ0Current_[level] = sampleSingleZ(pCurrent.row(0).t());
+        panelZCurrent_[level] = sampleZ(
+            pCurrent, panelYCurrent_[level], panelYIsMissing_[level],
+            boundDistributions
+        );
+    } else {
+        auto pTransition = getLogisticPTransition(panelDeltaCurrent_.slice(level), panelDesignMatrix_[level]);
+        unsigned int nStates = distributions_.size() + 1;
+        mat pMarginal(panelYCurrent_[level].n_elem, nStates, arma::fill::zeros);
+
+        for (unsigned int i = 0; i < panelYCurrent_[level].n_elem; ++i) {
+            if (panelYCurrent_[level][i] == 0 && !panelYIsMissing_[level][i]) {
+                pMarginal(i, 0) = 1;
+            } else {
+                for (unsigned int toState = 0; toState < nStates; ++toState) {
+                    for (unsigned int fromState = 0; fromState < nStates; ++fromState) {
+                        if (i == 0) {
+                            pMarginal(i, toState) += pTransition(i, toState, fromState) / static_cast<double>(nStates);
+                        } else {
+                            pMarginal(i, toState) += pTransition(i, toState, fromState) * pMarginal(i - 1, fromState);
+                        }
+                    }
+                }
+                if (!panelYIsMissing_[level][i]) {
+                    // We know at this point that y is not 0
+                    pMarginal(i, 0) = 0;
+                    for (unsigned int state = 0; state < distributions_.size(); ++state) {
+                        pMarginal(i, state + 1) *= boundDistributions[state].pdf(panelYCurrent_[level][i]);
+                    }
+                    pMarginal.row(i) /= arma::sum(pMarginal.row(i));
+                }
+            }
+        }
+        unsigned int lastIndex = panelZCurrent_[level].n_elem - 1;
+        panelZCurrent_[level][lastIndex] = sampleSingleZ3(pMarginal.row(lastIndex).t());
+        for (int i = lastIndex - 1; i >= 0; --i) {
+            colvec pNext = pTransition.tube(i + 1, panelZCurrent_[level][i + 1] - 1);
+            panelZCurrent_[level][i] = sampleSingleZ3(
+                pMarginal.row(i).t() % pNext
+            );
+        }
+        colvec pFirst = pTransition.tube(0, panelZCurrent_[level][0] - 1);
+        panelZ0Current_[level] = sampleSingleZ3(
+            pFirst / static_cast<double>(nStates)
+        );
+    }
 
     // Sample missing values \bm{y^*}
     sampleMissingY(
         panelYCurrent_[level], panelLogYCurrent_[level], panelYMissingIndices_[level], panelZCurrent_[level],
-        getParameterBoundDistributions()
+        boundDistributions
     );
 
     if (order_ > 0) {
@@ -303,7 +375,6 @@ void LogisticSampler::sampleLevel_(unsigned int level) {
         panelDesignMatrix_[level],
         boundLogisticParameterPrior
     );
-    panelPCurrent_[level] = getLogisticP(panelDeltaCurrent_.slice(level), panelDesignMatrix_[level]);
 }
 
 void LogisticSampler::sampleMissingLevel_(unsigned int level) {
