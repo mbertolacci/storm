@@ -100,6 +100,7 @@ LogisticSampler::LogisticSampler(
 
     if (logisticParameterHierarchical_) {
         deltaFamilyDesignMatrix_ = as<mat>(deltaFamilyDesignMatrix);
+        UtU_ = deltaFamilyDesignMatrix_.t() * deltaFamilyDesignMatrix_;
 
         List logisticFamilyMeanPrior = logisticPriorConfiguration["mean"];
         familyMeanPriorMean_ = as<cube>(logisticFamilyMeanPrior["mean"]);
@@ -201,8 +202,6 @@ void LogisticSampler::next() {
 }
 
 void LogisticSampler::sampleDeltaFamilyMean_() {
-    mat UtU = deltaFamilyDesignMatrix_.t() * deltaFamilyDesignMatrix_;
-
     #pragma omp parallel for
     for (unsigned int i = 0; i < panelDeltaCurrent_.n_rows; ++i) {
         for (unsigned int j = 0; j < panelDeltaCurrent_.n_cols; ++j) {
@@ -214,13 +213,13 @@ void LogisticSampler::sampleDeltaFamilyMean_() {
             mat currentPriorPrecision = diagmat(1 / currentPriorVariance);
 
             // R'R = V^{-1} = \sigma^{-2} U' U + \Sigma_0^{-1}
-            mat R = chol(UtU / variance + currentPriorPrecision);
+            mat R = chol(UtU_ / variance + currentPriorPrecision);
             // R'z = \sigma^{-2} U'\delta + \Sigma_0^{-1} \beta_0
-            mat z = solve(R.t(), deltaFamilyDesignMatrix_.t() * delta / variance + currentPriorPrecision * currentPriorMean);
+            mat z = solve(trimatl(R.t()), deltaFamilyDesignMatrix_.t() * delta / variance + currentPriorPrecision * currentPriorMean);
             // R \beta = z
-            colvec betaHat = solve(R, z);
+            colvec betaHat = solve(trimatu(R), z);
 
-            deltaFamilyMeanCurrent_.tube(i, j) = betaHat + solve(R, rng.randn(deltaFamilyDesignMatrix_.n_cols));
+            deltaFamilyMeanCurrent_.tube(i, j) = betaHat + solve(trimatu(R), rng.randn(deltaFamilyDesignMatrix_.n_cols));
         }
     }
 }

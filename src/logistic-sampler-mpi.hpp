@@ -27,6 +27,8 @@ class LogisticSamplerMPI : public LogisticSampler {
     arma::colvec sumYCurrent_;
     arma::colvec sumLogYCurrent_;
 
+    arma::mat UtUAll_;
+
     void broadcast_();
     void gather_();
 };

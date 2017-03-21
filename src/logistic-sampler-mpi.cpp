@@ -58,6 +58,7 @@ void LogisticSamplerMPI::start() {
             0, MPI_COMM_WORLD
         );
         deltaFamilyDesignMatrixAll_ = deltaFamilyDesignMatrixAll_.t();
+        UtUAll_ = deltaFamilyDesignMatrixAll_.t() * deltaFamilyDesignMatrixAll_;
     } else {
         MPI_Gather(
             &nLevels, 1, MPI_INT,
@@ -87,6 +88,7 @@ void LogisticSamplerMPI::next() {
 
         std::swap(panelDeltaCurrent_, panelDeltaCurrentAll_);
         std::swap(deltaFamilyDesignMatrix_, deltaFamilyDesignMatrixAll_);
+        std::swap(UtU_, UtUAll_);
 
         if (logisticParameterGaussianProcess_) {
             // Sample \bm{\tau}^2
@@ -101,6 +103,7 @@ void LogisticSamplerMPI::next() {
         sampleDeltaFamilyMean_();
         std::swap(panelDeltaCurrent_, panelDeltaCurrentAll_);
         std::swap(deltaFamilyDesignMatrix_, deltaFamilyDesignMatrixAll_);
+        std::swap(UtU_, UtUAll_);
 
         // Sample the parameters of the mixture distributions
         logger_.trace("Sampling distributions");

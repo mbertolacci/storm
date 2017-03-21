@@ -73,11 +73,11 @@ colvec sampleDeltaComponent(
     // R'R = X' \Omega X + V^{-1}
     mat R = chol(explanatoryVariables.t() * (explanatoryVariables.each_col() % omega) + invPriorVariance);
     // R'z = X' m_n + V^{-1} m_0
-    colvec z = solve(R.t(), explanatoryVariables.t() * meanPart + invPriorVariance * priorMean);
+    colvec z = solve(trimatl(R.t()), explanatoryVariables.t() * meanPart + invPriorVariance * priorMean);
     // R m = z
-    colvec mean = solve(R, z);
+    colvec mean = solve(trimatu(R), z);
 
-    return mean + solve(R, rng.randn(nDeltas));
+    return mean + solve(trimatu(R), rng.randn(nDeltas));
 }
 
 mat LogisticParameterSampler::samplePolson(
