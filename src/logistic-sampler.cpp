@@ -202,7 +202,7 @@ void LogisticSampler::next() {
 }
 
 void LogisticSampler::sampleDeltaFamilyMean_() {
-    #pragma omp parallel for
+    #pragma omp parallel for collapse(2)
     for (unsigned int i = 0; i < panelDeltaCurrent_.n_rows; ++i) {
         for (unsigned int j = 0; j < panelDeltaCurrent_.n_cols; ++j) {
             colvec delta = panelDeltaCurrent_.tube(i, j);
@@ -227,7 +227,7 @@ void LogisticSampler::sampleDeltaFamilyMean_() {
 void LogisticSampler::sampleDeltaFamilyVariance_() {
     double nLevels = panelDeltaCurrent_.n_slices;
 
-    #pragma omp parallel for
+    #pragma omp parallel for collapse(2)
     for (unsigned int i = 0; i < panelDeltaCurrent_.n_rows; ++i) {
         for (unsigned int j = 0; j < panelDeltaCurrent_.n_cols; ++j) {
             colvec delta = panelDeltaCurrent_.tube(i, j);
