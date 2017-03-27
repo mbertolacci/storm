@@ -278,7 +278,7 @@ void LogisticSampler::sampleDistributions_() {
     }
 }
 
-LogisticParameterPrior LogisticSampler::getLevelLogisicPrior_(unsigned int level) {
+LogisticParameterPrior LogisticSampler::getLevelLogisticPrior_(unsigned int level) {
     mat deltaLevelMean(size(deltaFamilyVarianceCurrent_));
     if (logisticParameterHierarchical_) {
         rowvec deltaDesignLevelRow = deltaFamilyDesignMatrix_.row(level);
@@ -367,7 +367,7 @@ void LogisticSampler::sampleLevel_(unsigned int level) {
     }
 
     // Sample \Delta_s
-    LogisticParameterPrior boundLogisticParameterPrior = getLevelLogisicPrior_(level);
+    LogisticParameterPrior boundLogisticParameterPrior = getLevelLogisticPrior_(level);
     panelDeltaCurrent_.slice(level) = panelLogisticParameterSampler_[level].sample(
         panelDeltaCurrent_.slice(level),
         panelZCurrent_[level],
@@ -377,7 +377,7 @@ void LogisticSampler::sampleLevel_(unsigned int level) {
 }
 
 void LogisticSampler::sampleMissingLevel_(unsigned int level) {
-    LogisticParameterPrior boundLogisticParameterPrior = getLevelLogisicPrior_(level);
+    LogisticParameterPrior boundLogisticParameterPrior = getLevelLogisticPrior_(level);
     panelDeltaCurrent_.slice(level) = boundLogisticParameterPrior.sample();
 }
 

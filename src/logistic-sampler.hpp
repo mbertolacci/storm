@@ -129,7 +129,7 @@ class LogisticSampler {
     void sampleDeltaFamilyVariance_();
     void sampleDeltaFamilyTau_();
     void sampleDistributions_();
-    LogisticParameterPrior getLevelLogisicPrior_(unsigned int level);
+    LogisticParameterPrior getLevelLogisticPrior_(unsigned int level);
     void sampleLevel_(unsigned int level);
     void sampleMissingLevel_(unsigned int level);
 
