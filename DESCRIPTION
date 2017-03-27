@@ -11,6 +11,9 @@ Depends:
     coda,
     codamvt
 Imports:
+    abind,
+    coda,
+    codamvt,
     Rcpp (>= 0.12.0),
     RcppArmadillo,
     futile.logger

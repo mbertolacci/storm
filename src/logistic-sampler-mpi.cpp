@@ -78,6 +78,24 @@ void LogisticSamplerMPI::start() {
 
 void LogisticSamplerMPI::next() {
     if (rank_ == 0) {
+        logger_.trace("Sampling each level");
+    }
+
+    #pragma omp parallel for schedule(dynamic, 1)
+    for (unsigned int level = 0; level < nDataLevels_; ++level) {
+        sampleLevel_(level);
+    }
+
+    #pragma omp parallel for
+    for (unsigned int level = nDataLevels_; level < nLevels_; ++level) {
+        sampleMissingLevel_(level);
+    }
+
+    if (rank_ == 0) {
+        logger_.trace("Sampled each level");
+    }
+
+    if (rank_ == 0) {
         logger_.trace("Gathering");
     }
 
@@ -109,28 +127,14 @@ void LogisticSamplerMPI::next() {
         logger_.trace("Sampling distributions");
         sampleDistributions_();
 
-        logger_.trace("Sampled, now broadcasting");
+        logger_.trace("Sampled");
+    }
+
+    if (rank_ == 0) {
+        logger_.trace("Broadcasting");
     }
 
     broadcast_();
-
-    if (rank_ == 0) {
-        logger_.trace("Broadcasted, now sampling each level");
-    }
-
-    #pragma omp parallel for schedule(dynamic, 1)
-    for (unsigned int level = 0; level < nDataLevels_; ++level) {
-        sampleLevel_(level);
-    }
-
-    #pragma omp parallel for
-    for (unsigned int level = nDataLevels_; level < nLevels_; ++level) {
-        sampleMissingLevel_(level);
-    }
-
-    if (rank_ == 0) {
-        logger_.trace("Sampled each level");
-    }
 }
 
 void LogisticSamplerMPI::sampleDistributions_() {

@@ -23,7 +23,7 @@ List logisticSampleMPI(
     unsigned int nSamples, unsigned int burnIn,
     List panelY, List panelDesignMatrix, unsigned int order,
     StringVector distributionNames, List priors, List samplingSchemes,
-    List panelZStart, IntegerVector panelZ0Start, List thetaStart,
+    List thetaStart,
     List panelDeltaStart, NumericVector deltaFamilyMeanStart, NumericMatrix deltaFamilyVarianceStart,
     Rcpp::Nullable<NumericMatrix> deltaDesignMatrix,
     List thinning,
@@ -34,7 +34,7 @@ List logisticSampleMPI(
     LogisticSamplerMPI sampler(
         panelY, panelDesignMatrix, order,
         distributionNames, priors, samplingSchemes,
-        panelZStart, panelZ0Start, thetaStart,
+        thetaStart,
         panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart,
         deltaDesignMatrix
     );

@@ -232,8 +232,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // logisticSampleMPI
-List logisticSampleMPI(unsigned int nSamples, unsigned int burnIn, List panelY, List panelDesignMatrix, unsigned int order, StringVector distributionNames, List priors, List samplingSchemes, List panelZStart, IntegerVector panelZ0Start, List thetaStart, List panelDeltaStart, NumericVector deltaFamilyMeanStart, NumericMatrix deltaFamilyVarianceStart, Rcpp::Nullable<NumericMatrix> deltaDesignMatrix, List thinning, unsigned int verbose, bool progress);
-RcppExport SEXP positivemixtures_logisticSampleMPI(SEXP nSamplesSEXP, SEXP burnInSEXP, SEXP panelYSEXP, SEXP panelDesignMatrixSEXP, SEXP orderSEXP, SEXP distributionNamesSEXP, SEXP priorsSEXP, SEXP samplingSchemesSEXP, SEXP panelZStartSEXP, SEXP panelZ0StartSEXP, SEXP thetaStartSEXP, SEXP panelDeltaStartSEXP, SEXP deltaFamilyMeanStartSEXP, SEXP deltaFamilyVarianceStartSEXP, SEXP deltaDesignMatrixSEXP, SEXP thinningSEXP, SEXP verboseSEXP, SEXP progressSEXP) {
+List logisticSampleMPI(unsigned int nSamples, unsigned int burnIn, List panelY, List panelDesignMatrix, unsigned int order, StringVector distributionNames, List priors, List samplingSchemes, List thetaStart, List panelDeltaStart, NumericVector deltaFamilyMeanStart, NumericMatrix deltaFamilyVarianceStart, Rcpp::Nullable<NumericMatrix> deltaDesignMatrix, List thinning, unsigned int verbose, bool progress);
+RcppExport SEXP positivemixtures_logisticSampleMPI(SEXP nSamplesSEXP, SEXP burnInSEXP, SEXP panelYSEXP, SEXP panelDesignMatrixSEXP, SEXP orderSEXP, SEXP distributionNamesSEXP, SEXP priorsSEXP, SEXP samplingSchemesSEXP, SEXP thetaStartSEXP, SEXP panelDeltaStartSEXP, SEXP deltaFamilyMeanStartSEXP, SEXP deltaFamilyVarianceStartSEXP, SEXP deltaDesignMatrixSEXP, SEXP thinningSEXP, SEXP verboseSEXP, SEXP progressSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -245,8 +245,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< StringVector >::type distributionNames(distributionNamesSEXP);
     Rcpp::traits::input_parameter< List >::type priors(priorsSEXP);
     Rcpp::traits::input_parameter< List >::type samplingSchemes(samplingSchemesSEXP);
-    Rcpp::traits::input_parameter< List >::type panelZStart(panelZStartSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type panelZ0Start(panelZ0StartSEXP);
     Rcpp::traits::input_parameter< List >::type thetaStart(thetaStartSEXP);
     Rcpp::traits::input_parameter< List >::type panelDeltaStart(panelDeltaStartSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type deltaFamilyMeanStart(deltaFamilyMeanStartSEXP);
@@ -255,13 +253,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< List >::type thinning(thinningSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< bool >::type progress(progressSEXP);
-    rcpp_result_gen = Rcpp::wrap(logisticSampleMPI(nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, panelZStart, panelZ0Start, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress));
+    rcpp_result_gen = Rcpp::wrap(logisticSampleMPI(nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress));
     return rcpp_result_gen;
 END_RCPP
 }
 // logisticSample
-List logisticSample(unsigned int nSamples, unsigned int burnIn, List panelY, List panelDesignMatrix, unsigned int order, StringVector distributionNames, List priors, List samplingSchemes, List panelZStart, IntegerVector panelZ0Start, List thetaStart, List panelDeltaStart, NumericVector deltaFamilyMeanStart, NumericMatrix deltaFamilyVarianceStart, Rcpp::Nullable<NumericMatrix> deltaDesignMatrix, List thinning, unsigned int verbose, bool progress);
-RcppExport SEXP positivemixtures_logisticSample(SEXP nSamplesSEXP, SEXP burnInSEXP, SEXP panelYSEXP, SEXP panelDesignMatrixSEXP, SEXP orderSEXP, SEXP distributionNamesSEXP, SEXP priorsSEXP, SEXP samplingSchemesSEXP, SEXP panelZStartSEXP, SEXP panelZ0StartSEXP, SEXP thetaStartSEXP, SEXP panelDeltaStartSEXP, SEXP deltaFamilyMeanStartSEXP, SEXP deltaFamilyVarianceStartSEXP, SEXP deltaDesignMatrixSEXP, SEXP thinningSEXP, SEXP verboseSEXP, SEXP progressSEXP) {
+List logisticSample(unsigned int nSamples, unsigned int burnIn, List panelY, List panelDesignMatrix, unsigned int order, StringVector distributionNames, List priors, List samplingSchemes, List thetaStart, List panelDeltaStart, NumericVector deltaFamilyMeanStart, NumericMatrix deltaFamilyVarianceStart, Rcpp::Nullable<NumericMatrix> deltaDesignMatrix, List thinning, unsigned int verbose, bool progress);
+RcppExport SEXP positivemixtures_logisticSample(SEXP nSamplesSEXP, SEXP burnInSEXP, SEXP panelYSEXP, SEXP panelDesignMatrixSEXP, SEXP orderSEXP, SEXP distributionNamesSEXP, SEXP priorsSEXP, SEXP samplingSchemesSEXP, SEXP thetaStartSEXP, SEXP panelDeltaStartSEXP, SEXP deltaFamilyMeanStartSEXP, SEXP deltaFamilyVarianceStartSEXP, SEXP deltaDesignMatrixSEXP, SEXP thinningSEXP, SEXP verboseSEXP, SEXP progressSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -273,8 +271,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< StringVector >::type distributionNames(distributionNamesSEXP);
     Rcpp::traits::input_parameter< List >::type priors(priorsSEXP);
     Rcpp::traits::input_parameter< List >::type samplingSchemes(samplingSchemesSEXP);
-    Rcpp::traits::input_parameter< List >::type panelZStart(panelZStartSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type panelZ0Start(panelZ0StartSEXP);
     Rcpp::traits::input_parameter< List >::type thetaStart(thetaStartSEXP);
     Rcpp::traits::input_parameter< List >::type panelDeltaStart(panelDeltaStartSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type deltaFamilyMeanStart(deltaFamilyMeanStartSEXP);
@@ -283,7 +279,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< List >::type thinning(thinningSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< bool >::type progress(progressSEXP);
-    rcpp_result_gen = Rcpp::wrap(logisticSample(nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, panelZStart, panelZ0Start, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress));
+    rcpp_result_gen = Rcpp::wrap(logisticSample(nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress));
     return rcpp_result_gen;
 END_RCPP
 }

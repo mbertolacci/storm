@@ -18,7 +18,7 @@ class LogisticSampler {
     LogisticSampler(
         Rcpp::List panelY, Rcpp::List panelDesignMatrix, unsigned int order,
         Rcpp::StringVector distributionNames, Rcpp::List priors, Rcpp::List samplingSchemes,
-        Rcpp::List panelZStart, Rcpp::IntegerVector panelZ0Start, Rcpp::List thetaStart,
+        Rcpp::List thetaStart,
         Rcpp::List panelDeltaStart, Rcpp::NumericVector deltaFamilyMeanStart,
         Rcpp::NumericMatrix deltaFamilyVarianceStart,
         Rcpp::Nullable<Rcpp::NumericMatrix> deltaDesignMatrix
@@ -37,6 +37,10 @@ class LogisticSampler {
 
     const unsigned int getNComponents() {
         return distributions_.size();
+    }
+
+    const arma::field<arma::colvec> getDistributionsCurrent() {
+        return distributionCurrent_;
     }
 
     const arma::colvec getDistributionCurrent(unsigned int distribution) {
@@ -272,6 +276,20 @@ class LogisticSample {
                 ++progressBar;
             }
         }
+
+        Rcpp::List finalDistributions;
+        for (unsigned int k = 0; k < nComponents; ++k) {
+            finalDistributions.push_back(Rcpp::wrap(sampler.getDistributionCurrent(k)));
+        }
+        finalValues_["distributions"] = finalDistributions;
+        Rcpp::List finalDelta;
+        unsigned int nLevels = sampler.getPanelDeltaCurrent().n_slices;
+        for (unsigned int level = 0; level < nLevels; ++level) {
+            finalDelta.push_back(Rcpp::wrap(sampler.getPanelDeltaCurrent().slice(level)));
+        }
+        finalValues_["delta"] = finalDelta;
+        finalValues_["delta_family_mean"] = Rcpp::wrap(sampler.getDeltaFamilyMeanCurrent());
+        finalValues_["delta_family_variance"] = Rcpp::wrap(sampler.getDeltaFamilyVarianceCurrent());
     }
 
     Rcpp::List asList() {
@@ -303,6 +321,7 @@ class LogisticSample {
             sample["y_missing"] = listFromField(panelYMissing_);
         }
         results["sample"] = sample;
+        results["final_values"] = finalValues_;
 
         return results;
     }
@@ -318,6 +337,8 @@ class LogisticSample {
     arma::field<arma::umat> panelZ_;
 
     arma::field<arma::mat> panelYMissing_;
+
+    Rcpp::List finalValues_;
 };
 
 #endif  // SRC_LOGISTIC_SAMPLER_HPP_

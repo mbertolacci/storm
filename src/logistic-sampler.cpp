@@ -55,7 +55,7 @@ cube getLogisticPTransition(const mat delta, const mat designMatrixBase) {
 LogisticSampler::LogisticSampler(
     List panelY, List panelDesignMatrix, unsigned int order,
     StringVector distributionNames, List priors, List samplingSchemes,
-    List panelZStart, IntegerVector panelZ0Start, List thetaStart,
+    List thetaStart,
     List panelDeltaStart, NumericVector deltaFamilyMeanStart, NumericMatrix deltaFamilyVarianceStart,
     Rcpp::Nullable<NumericMatrix> deltaFamilyDesignMatrix
 ) : order_(order),
@@ -143,9 +143,14 @@ LogisticSampler::LogisticSampler(
         panelYIsMissing_[level] = missingValuesPair.second;
     }
 
+    // Latent variables
+    panelZ0Current_ = ucolvec(nDataLevels_);
+    panelZCurrent_ = field<ucolvec>(nDataLevels_);
+    for (unsigned int level = 0; level < nDataLevels_; ++level) {
+        panelZCurrent_[level] = ucolvec(panelYCurrent_[level].n_elem);
+    }
+
     // Starting values
-    panelZ0Current_ = as<ucolvec>(panelZ0Start);
-    panelZCurrent_ = fieldFromList<ucolvec>(panelZStart);
     distributionCurrent_ = fieldFromList<colvec>(thetaStart);
     panelDeltaCurrent_ = cubeFromList(panelDeltaStart);
     deltaFamilyMeanCurrent_ = as<cube>(deltaFamilyMeanStart);
@@ -153,27 +158,19 @@ LogisticSampler::LogisticSampler(
     deltaFamilyTauSquaredCurrent_ = mat(panelDeltaCurrent_.n_rows, nDeltas_);
 }
 
-void LogisticSampler::start() {
-    #pragma omp parallel for
-    for (unsigned int level = 0; level < nDataLevels_; ++level) {
-        sampleMissingY(
-            panelYCurrent_[level], panelLogYCurrent_[level], panelYMissingIndices_[level], panelZCurrent_[level],
-            getParameterBoundDistributions()
-        );
-
-        if (order_ > 0) {
-            unsigned int nComponents = distributions_.size();
-            for (unsigned int k = 0; k < nComponents; ++k) {
-                panelDesignMatrix_[level](0, nDeltas_ + k - nComponents) = panelZ0Current_[level] == k + 2;
-                for (unsigned int i = 0; i < panelZCurrent_[level].n_elem - 1; ++i) {
-                    panelDesignMatrix_[level](i + 1, nDeltas_ + k - nComponents) = panelZCurrent_[level][i] == k + 2;
-                }
-            }
-        }
-    }
-}
+void LogisticSampler::start() {}
 
 void LogisticSampler::next() {
+    #pragma omp parallel for schedule(dynamic, 1)
+    for (unsigned int level = 0; level < nDataLevels_; ++level) {
+        sampleLevel_(level);
+    }
+
+    #pragma omp parallel for
+    for (unsigned int level = nDataLevels_; level < nLevels_; ++level) {
+        sampleMissingLevel_(level);
+    }
+
     if (logisticParameterHierarchical_) {
         if (logisticParameterGaussianProcess_) {
             // Sample \bm{\tau}^2
@@ -189,16 +186,6 @@ void LogisticSampler::next() {
 
     // Sample the parameters of the mixture distributions
     sampleDistributions_();
-
-    #pragma omp parallel for
-    for (unsigned int level = 0; level < nDataLevels_; ++level) {
-        sampleLevel_(level);
-    }
-
-    #pragma omp parallel for
-    for (unsigned int level = nDataLevels_; level < nLevels_; ++level) {
-        sampleMissingLevel_(level);
-    }
 }
 
 void LogisticSampler::sampleDeltaFamilyMean_() {
