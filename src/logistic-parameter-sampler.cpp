@@ -52,7 +52,7 @@ void LogisticParameterSampler::resetAcceptCounts() {
 
 colvec sampleDeltaComponent(
     const mat& deltaCurrent, const ucolvec& zCurrent, const mat& explanatoryVariables,
-    const mat& sums, const mat& expSums, const mat& maxSums,
+    const mat& sums,
     const colvec& priorMean, const colvec& priorVariance,
     unsigned int component
 ) {
@@ -63,8 +63,19 @@ colvec sampleDeltaComponent(
     for (unsigned int i = 0; i < explanatoryVariables.n_rows; ++i) {
         double thisSum = sums(component, i);
         // This is log(1 + \sum_{k' != component} exp(sum[k']))
-        double c = log(arma::sum(expSums.col(i)) - expSums(component, i)) + maxSums[i];
-
+        double otherComponentMax = -std::numeric_limits<double>::infinity();
+        for (unsigned int k = 0; k < sums.n_rows; ++k) {
+            if (k != component) {
+                otherComponentMax = std::max(otherComponentMax, sums(k, i));
+            }
+        }
+        double otherComponentSum = 0;
+        for (unsigned int k = 0; k < sums.n_rows; ++k) {
+            if (k != component) {
+                otherComponentSum += std::exp(sums(k, i) - otherComponentMax);
+            }
+        }
+        double c = std::log(otherComponentSum) + otherComponentMax;
         omega[i] = rpolyagamma(1, thisSum - c);
         meanPart[i] = (zCurrent[i] == (component + 2) ? 1.0 : 0) - 0.5 + omega[i] * c;
     }
@@ -86,30 +97,24 @@ mat LogisticParameterSampler::samplePolson(
 ) {
     mat deltaNew(deltaCurrent);
 
-    colvec maxSums(explanatoryVariables.n_rows);
     // The last column is for the 0 given by component set to 0
     mat sums(deltaCurrent.n_rows + 1, explanatoryVariables.n_rows, arma::fill::zeros);
-    mat expSums(deltaCurrent.n_rows + 1, explanatoryVariables.n_rows, arma::fill::zeros);
     for (unsigned int i = 0; i < explanatoryVariables.n_rows; ++i) {
         for (unsigned int k = 0; k < deltaCurrent.n_rows; ++k) {
             sums(k, i) = arma::dot(deltaCurrent.row(k), explanatoryVariables.row(i));
         }
-
-        maxSums[i] = arma::max(sums.col(i));
-        expSums.col(i) = exp(sums.col(i) - maxSums[i]);
     }
 
     for (unsigned int k = 0; k < deltaCurrent.n_rows; ++k) {
         deltaNew.row(k) = sampleDeltaComponent(
             deltaNew, zCurrent, explanatoryVariables,
-            sums, expSums, maxSums,
+            sums,
             prior.means().row(k).t(), prior.variances().row(k).t(),
             k
         ).t();
 
         for (unsigned int i = 0; i < explanatoryVariables.n_rows; ++i) {
             sums(k, i) = arma::dot(deltaNew.row(k), explanatoryVariables.row(i));
-            expSums(k, i) = exp(sums(k, i) - maxSums[i]);
         }
     }
 

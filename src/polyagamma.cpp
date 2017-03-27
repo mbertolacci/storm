@@ -9,6 +9,8 @@ using ptsm::rng;
 // TODO(mgnb): pick this for maximum performance. There's a trade-off between the accept/reject behaviour and the
 // need to sample truncated inverse gauss random variates. I've put this lower already.
 const double POLYAGAMMA_TRUNC = 0.2;
+const unsigned int MAX_REJECTIONS = 10000;
+const unsigned int MAX_SERIES_DEPTH = 10000;
 
 inline double square(double x) {
     return x * x;
@@ -78,14 +80,14 @@ double polyagammaCoeff(double x, unsigned int n) {
     }
 }
 
-double rpolyagammaSingle(double z) {
-    z = fabs(z) / 2;
+double rpolyagammaSingle(double zInput) {
+    double z = fabs(zInput) / 2;
 
     double K = square(M_PI) / 8 + square(z) / 2;
     double p = M_PI / (2 * K) * exp(-K * POLYAGAMMA_TRUNC);
     double q = 2 * exp(-z) * pinvgauss(POLYAGAMMA_TRUNC, z, 1.0);
 
-    while (true) {
+    for (unsigned int iterations = 0; iterations < MAX_REJECTIONS; ++iterations) {
         double X;
 
         if (rng.randu() < p / (p + q)) {
@@ -96,12 +98,10 @@ double rpolyagammaSingle(double z) {
             X = rinvtruncatedgauss(z);
         }
 
-        unsigned int n = 0;
         double S = polyagammaCoeff(X, 0);
         double Y = rng.randu() * S;
 
-        while (true) {
-            ++n;
+        for (unsigned int n = 1; n < MAX_SERIES_DEPTH; ++n) {
             if (n % 2 == 1) {
                 S -= polyagammaCoeff(X, n);
                 if (Y <= S) {
@@ -115,6 +115,8 @@ double rpolyagammaSingle(double z) {
             }
         }
     }
+
+    throw std::runtime_error("maximum rejections exceeded");
 
     return 0;
 }
