@@ -187,6 +187,7 @@ ptsm_logistic_sample <- function(
     last_checkpoint_path <- file.path(checkpoint_path, 'last_checkpoint.rds')
     new_checkpoint_path <- file.path(checkpoint_path, 'new_checkpoint.rds')
     if (use_checkpoints && file.exists(configuration_path) && file.exists(last_checkpoint_path)) {
+        futile.logger::flog.debug('Found existing configuration', name = 'ptsm.logistic_sample')
         configuration <- readRDS(configuration_path)
         current_checkpoint <- readRDS(last_checkpoint_path)
     } else {
@@ -259,9 +260,13 @@ ptsm_logistic_sample <- function(
             file.rename(new_checkpoint_path, last_checkpoint_path)
         }
 
+        futile.logger::flog.debug('Combining checkpoints', name = 'ptsm.logistic_sample')
         final_results <- NULL
         n_components <- length(configuration$distributions)
         for (index in 0 : (current_checkpoint$index - 1)) {
+            futile.logger::flog.trace('Loading checkpoint %d', index, name = 'ptsm.logistic_sample')
+            # Flush the results of previous loop iterations
+            gc()
             results <- readRDS(file.path(checkpoint_path, paste0('checkpoint_results', index, '.rds')))
             if (is.null(final_results)) {
                 final_results <- results
