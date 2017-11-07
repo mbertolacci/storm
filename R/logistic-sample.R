@@ -524,7 +524,7 @@ ptsm_logistic_sample <- function(
 
             results$sample[['delta']] <- aperm(results$sample[['delta']], c(4, 1, 2, 3))
         }
-        results$sample[['delta']] <- codamvt::mcmcm(results$sample[['delta']], start = 1, thin = configuration$thinning$delta)
+        results$sample[['delta']] <- acoda::mcmca(results$sample[['delta']], start = 1, thin = configuration$thinning$delta)
     }
 
     if (!is.null(results$sample[['delta_family_mean']]) && configuration$prior$logistic$type == 'hierarchical') {
@@ -533,7 +533,7 @@ ptsm_logistic_sample <- function(
         dimnames(results$sample[['delta_family_mean']])[[2]] <- delta_param_names
         dimnames(results$sample[['delta_family_mean']])[[3]] <- colnames(configuration$level_design_matrix)
         dimnames(results$sample[['delta_family_mean']])[[4]] <- NULL
-        results$sample[['delta_family_mean']] <- codamvt::mcmcm(
+        results$sample[['delta_family_mean']] <- acoda::mcmca(
             aperm(results$sample[['delta_family_mean']], c(4, 1, 2, 3)),
             start = 1, thin = configuration$thinning$family
         )
@@ -542,7 +542,7 @@ ptsm_logistic_sample <- function(
         dimnames(results$sample[['delta_family_variance']])[[1]] <- paste0('k=', 2 : (n_components + 1))
         dimnames(results$sample[['delta_family_variance']])[[2]] <- delta_param_names
         dimnames(results$sample[['delta_family_variance']])[[3]] <- NULL
-        results$sample[['delta_family_variance']] <- codamvt::mcmcm(
+        results$sample[['delta_family_variance']] <- acoda::mcmca(
             aperm(results$sample[['delta_family_variance']], c(3, 1, 2)),
             start = 1, thin = configuration$thinning$family
         )

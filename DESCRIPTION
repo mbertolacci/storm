@@ -9,11 +9,11 @@ Description: Performs Bayesian estimation of mixture models for the positive rea
 License: MIT + file LICENSE
 Depends:
     coda,
-    codamvt
+    acoda
 Imports:
     abind,
     coda,
-    codamvt,
+    acoda,
     Rcpp (>= 0.12.0),
     RcppArmadillo,
     futile.logger

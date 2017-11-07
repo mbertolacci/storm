@@ -1,4 +1,4 @@
-library(codamvt)
+library(acoda)
 devtools::load_all('positivemixtures')
 
 cat('\n--------- Gamma / Gamma\n')
