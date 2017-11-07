@@ -10,4 +10,3 @@ ptsm_logistic_fitted_delta(sampler_results, probs = c(0.025, 0.1, 0.5, 0.9,
 \description{
 Calculate mean and quantiles of fitted delta values
 }
-

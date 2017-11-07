@@ -9,4 +9,3 @@ dgev(x, mu, sigma, xi, log = FALSE)
 \description{
 Compute the density function for the GEV
 }
-

@@ -9,4 +9,3 @@ fgev_constrained(x, support_min = 0)
 \description{
 Find the constrained ML estimate of the parameters for the GEV
 }
-

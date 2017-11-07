@@ -9,4 +9,3 @@ fgev(x)
 \description{
 Find the ML estimate of the parameters for the GEV
 }
-
