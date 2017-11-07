@@ -340,7 +340,7 @@ ptsm_logistic_sample <- function(
             stop('Levels in data and level_data must be equal')
         }
 
-        if (nrow(level_data[!is.na(level_data[[panel_variable]]), ]) != nlevels(level_data[[panel_variable]])) {
+        if (nrow(level_data[!is.na(level_data[[panel_variable]]), , drop = FALSE]) != nlevels(level_data[[panel_variable]])) {
             stop('Number of rows in level_data should equal number of levels')
         }
 

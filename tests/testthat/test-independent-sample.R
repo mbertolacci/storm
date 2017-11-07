@@ -27,21 +27,21 @@ get_sample <- function(
     )$sample
 }
 
-test_that('sample$lower and $upper have the right properties', {
+test_that('sample$distribution has the right properties', {
     sample <- get_sample()
-    expect_true(is.null(sample$lower))
-    expect_true(is.null(sample$upper))
+    expect_true(is.null(sample$distribution[[1]]))
+    expect_true(is.null(sample$distribution[[2]]))
 
     sample <- get_sample(distributions_thinning = 1)
-    expect_is(sample$lower, 'mcmc')
-    expect_equal(nrow(sample$lower), 200)
-    expect_is(sample$upper, 'mcmc')
-    expect_equal(nrow(sample$upper), 200)
+    expect_is(sample$distribution[[1]], 'mcmc')
+    expect_equal(nrow(sample$distribution[[1]]), 200)
+    expect_is(sample$distribution[[2]], 'mcmc')
+    expect_equal(nrow(sample$distribution[[2]]), 200)
     expect_true(all(
-        colnames(sample$lower) == c('alpha', 'beta')
+        colnames(sample$distribution[[1]]) == c('alpha', 'beta')
     ))
     expect_true(all(
-        colnames(sample$upper) == c('alpha', 'beta')
+        colnames(sample$distribution[[2]]) == c('alpha', 'beta')
     ))
 })
 
