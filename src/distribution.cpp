@@ -32,6 +32,7 @@ DataBoundDistribution::DataBoundDistribution(
     thisN_(0),
     sumY_(0),
     sumLogY_(0),
+    sumLogYSquared_(0),
     distribution_(distribution) {
     switch (distribution_.getType()) {
     case GAMMA: {
@@ -50,6 +51,7 @@ DataBoundDistribution::DataBoundDistribution(
             if (z_[i] == thisZ_) {
                 ++thisN_;
                 sumLogY_ += logY_[i];
+                sumLogYSquared_ += logY_[i] * logY_[i];
             }
         }
         break;
@@ -60,15 +62,16 @@ DataBoundDistribution::DataBoundDistribution(
 }
 
 DataBoundDistribution::DataBoundDistribution(
-    unsigned int thisN, double sumY, double sumLogY, Distribution distribution
+    unsigned int thisN, double sumY, double sumLogY, double sumLogYSquared, Distribution distribution
 )
     : thisZ_(0),
       thisN_(thisN),
       sumY_(sumY),
       sumLogY_(sumLogY),
+      sumLogYSquared_(sumLogYSquared),
       distribution_(distribution) {
-    if (distribution_.getType() != GAMMA) {
-        throw std::runtime_error("summary constructor only usable with GAMMA distribution");
+    if (distribution_.getType() != GAMMA && distribution_.getType() != LOG_NORMAL) {
+        throw std::runtime_error("summary constructor only usable with GAMMA or LOG_NORMAL distributions");
     }
 }
 
@@ -148,21 +151,7 @@ double DataBoundDistribution::logLikelihood(colvec parameters) const {
         }
     }
     case LOG_NORMAL: {
-        double mu = parameters[0];
-        double sigma = parameters[1];
-        double sigmaSq = sigma * sigma;
-
-        double sumSquares = 0;
-        for (unsigned int i = 0; i < logY_.n_elem; ++i) {
-            if (z_[i] == thisZ_) {
-                sumSquares += (logY_[i] - mu) * (logY_[i] - mu);
-            }
-        }
-        return(
-            - sumLogY_
-            - (thisN_ / 2) * log(2 * PI * sigmaSq)
-            - sumSquares / (2 * sigmaSq)
-        );
+        return -DBL_MAX;
     }
     default: {
         return -DBL_MAX;

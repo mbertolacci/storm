@@ -19,6 +19,10 @@
             y[z == component_z] <- rgengamma(
                 length(which(z == component_z)), parameters[1], parameters[2], parameters[3]
             )
+        } else if (distributions[index] == 'lnorm') {
+            y[z == component_z] <- exp(parameters[1] + rnorm(
+                length(which(z == component_z))
+            ) / sqrt(parameters[2]))
         }
     }
 

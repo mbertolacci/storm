@@ -2,101 +2,101 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 idigamma <- function(y) {
-    .Call('positivemixtures_idigamma', PACKAGE = 'positivemixtures', y)
+    .Call('_positivemixtures_idigamma', PACKAGE = 'positivemixtures', y)
 }
 
 dgammashapeconjugate <- function(alpha, logBeta, logP, q, r) {
-    .Call('positivemixtures_logDensity', PACKAGE = 'positivemixtures', alpha, logBeta, logP, q, r)
+    .Call('_positivemixtures_logDensity', PACKAGE = 'positivemixtures', alpha, logBeta, logP, q, r)
 }
 
 rgammashapeconjugate <- function(n, beta, logP = NA_real_, q = NA_real_, r = NA_real_, x = NULL, prior = NULL) {
-    .Call('positivemixtures_rGammaShapeConjugateR', PACKAGE = 'positivemixtures', n, beta, logP, q, r, x, prior)
+    .Call('_positivemixtures_rGammaShapeConjugateR', PACKAGE = 'positivemixtures', n, beta, logP, q, r, x, prior)
 }
 
 .ptsm_gp_sample <- function(y, designMatrix, betaPriorMean, betaPriorVariance, variancePriorAlpha, variancePriorBeta, tauSquaredPriorAlpha, tauSquaredPriorBeta, nGPBases) {
-    .Call('positivemixtures_gpSample', PACKAGE = 'positivemixtures', y, designMatrix, betaPriorMean, betaPriorVariance, variancePriorAlpha, variancePriorBeta, tauSquaredPriorAlpha, tauSquaredPriorBeta, nGPBases)
+    .Call('_positivemixtures_gpSample', PACKAGE = 'positivemixtures', y, designMatrix, betaPriorMean, betaPriorVariance, variancePriorAlpha, variancePriorBeta, tauSquaredPriorAlpha, tauSquaredPriorBeta, nGPBases)
 }
 
 #' @export
 rgev <- function(n, mu, sigma, xi) {
-    .Call('positivemixtures_rgevVector', PACKAGE = 'positivemixtures', n, mu, sigma, xi)
+    .Call('_positivemixtures_rgevVector', PACKAGE = 'positivemixtures', n, mu, sigma, xi)
 }
 
 .estimatePwm <- function(x, r) {
-    .Call('positivemixtures_estimatePwm', PACKAGE = 'positivemixtures', x, r)
+    .Call('_positivemixtures_estimatePwm', PACKAGE = 'positivemixtures', x, r)
 }
 
 #' @export
 gevPwmEstimate <- function(x) {
-    .Call('positivemixtures_gevPwmEstimate', PACKAGE = 'positivemixtures', x)
+    .Call('_positivemixtures_gevPwmEstimate', PACKAGE = 'positivemixtures', x)
 }
 
 #' @export
 gevPwmEstimateConstrained <- function(x, supportLim) {
-    .Call('positivemixtures_gevPwmEstimateConstrained', PACKAGE = 'positivemixtures', x, supportLim)
+    .Call('_positivemixtures_gevPwmEstimateConstrained', PACKAGE = 'positivemixtures', x, supportLim)
 }
 
 .ptsm_hmm_sample <- function(nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, thetaStart, thetaSampleThinning = 1L, zSampleThinning = 0L, yMissingSampleThinning = 0L, verbose = 0L) {
-    .Call('positivemixtures_hmmSample', PACKAGE = 'positivemixtures', nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, thetaStart, thetaSampleThinning, zSampleThinning, yMissingSampleThinning, verbose)
+    .Call('_positivemixtures_hmmSample', PACKAGE = 'positivemixtures', nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, thetaStart, thetaSampleThinning, zSampleThinning, yMissingSampleThinning, verbose)
 }
 
 .ptsm_independent_sample <- function(nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, distributionsStart, distributionSampleThinning = 1L, pSampleThinning = 1L, zSampleThinning = 0L, yMissingSampleThinning = 0L, progress = FALSE) {
-    .Call('positivemixtures_independentSample', PACKAGE = 'positivemixtures', nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, distributionsStart, distributionSampleThinning, pSampleThinning, zSampleThinning, yMissingSampleThinning, progress)
+    .Call('_positivemixtures_independentSample', PACKAGE = 'positivemixtures', nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, distributionsStart, distributionSampleThinning, pSampleThinning, zSampleThinning, yMissingSampleThinning, progress)
 }
 
 .ptsm_logistic_ergodic_p <- function(deltaSamplesR, zSamplesR, z0SamplesR, designMatrixR, order) {
-    .Call('positivemixtures_logisticErgodicP', PACKAGE = 'positivemixtures', deltaSamplesR, zSamplesR, z0SamplesR, designMatrixR, order)
+    .Call('_positivemixtures_logisticErgodicP', PACKAGE = 'positivemixtures', deltaSamplesR, zSamplesR, z0SamplesR, designMatrixR, order)
 }
 
 .ptsm_logistic_predicted_p <- function(levels, order) {
-    .Call('positivemixtures_logisticPredictedP', PACKAGE = 'positivemixtures', levels, order)
+    .Call('_positivemixtures_logisticPredictedP', PACKAGE = 'positivemixtures', levels, order)
 }
 
 .ptsm_logistic_moments <- function(distributionSamplesR, levels, order, conditionOnPositive) {
-    .Call('positivemixtures_logisticMoments', PACKAGE = 'positivemixtures', distributionSamplesR, levels, order, conditionOnPositive)
+    .Call('_positivemixtures_logisticMoments', PACKAGE = 'positivemixtures', distributionSamplesR, levels, order, conditionOnPositive)
 }
 
 .ptsm_logistic_fitted_delta <- function(deltaFamilyMeanSamples, levelDesignMatrixR, probsR) {
-    .Call('positivemixtures_logisticFittedDelta', PACKAGE = 'positivemixtures', deltaFamilyMeanSamples, levelDesignMatrixR, probsR)
+    .Call('_positivemixtures_logisticFittedDelta', PACKAGE = 'positivemixtures', deltaFamilyMeanSamples, levelDesignMatrixR, probsR)
 }
 
 .ptsm_logistic_generate <- function(deltaR, explanatoryVariablesR, distributionParameters, distributionNames, order) {
-    .Call('positivemixtures_logisticGenerate', PACKAGE = 'positivemixtures', deltaR, explanatoryVariablesR, distributionParameters, distributionNames, order)
+    .Call('_positivemixtures_logisticGenerate', PACKAGE = 'positivemixtures', deltaR, explanatoryVariablesR, distributionParameters, distributionNames, order)
 }
 
 .ptsm_logistic_sample_mpi <- function(nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose = 0L, progress = FALSE) {
-    .Call('positivemixtures_logisticSampleMPI', PACKAGE = 'positivemixtures', nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress)
+    .Call('_positivemixtures_logisticSampleMPI', PACKAGE = 'positivemixtures', nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress)
 }
 
 .ptsm_logistic_sample <- function(nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose = 0L, progress = FALSE) {
-    .Call('positivemixtures_logisticSample', PACKAGE = 'positivemixtures', nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress)
+    .Call('_positivemixtures_logisticSample', PACKAGE = 'positivemixtures', nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress)
 }
 
 .ptsm_logistic_sample_y <- function(panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames, order) {
-    .Call('positivemixtures_logisticSampleY', PACKAGE = 'positivemixtures', panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames, order)
+    .Call('_positivemixtures_logisticSampleY', PACKAGE = 'positivemixtures', panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames, order)
 }
 
 benchmarkLogistic <- function(nDeltas, nValues, nIterations) {
-    invisible(.Call('positivemixtures_benchmarkLogistic', PACKAGE = 'positivemixtures', nDeltas, nValues, nIterations))
+    invisible(.Call('_positivemixtures_benchmarkLogistic', PACKAGE = 'positivemixtures', nDeltas, nValues, nIterations))
 }
 
 rpolyagamma <- function(length, n, z) {
-    .Call('positivemixtures_rpolyagammaVector', PACKAGE = 'positivemixtures', length, n, z)
+    .Call('_positivemixtures_rpolyagammaVector', PACKAGE = 'positivemixtures', length, n, z)
 }
 
 thinplate_basis_2d <- function(X, nBases) {
-    .Call('positivemixtures_thinplateBasis2d', PACKAGE = 'positivemixtures', X, nBases)
+    .Call('_positivemixtures_thinplateBasis2d', PACKAGE = 'positivemixtures', X, nBases)
 }
 
 .levels_to_list_integer_vector <- function(x, xLevels) {
-    .Call('positivemixtures_levelsToListIntegerVector', PACKAGE = 'positivemixtures', x, xLevels)
+    .Call('_positivemixtures_levelsToListIntegerVector', PACKAGE = 'positivemixtures', x, xLevels)
 }
 
 .levels_to_list_numeric_vector <- function(x, xLevels) {
-    .Call('positivemixtures_levelsToListNumericVector', PACKAGE = 'positivemixtures', x, xLevels)
+    .Call('_positivemixtures_levelsToListNumericVector', PACKAGE = 'positivemixtures', x, xLevels)
 }
 
 .levels_to_list_numeric_matrix <- function(x, xLevels) {
-    .Call('positivemixtures_levelsToListNumericMatrix', PACKAGE = 'positivemixtures', x, xLevels)
+    .Call('_positivemixtures_levelsToListNumericMatrix', PACKAGE = 'positivemixtures', x, xLevels)
 }
 

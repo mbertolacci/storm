@@ -8,7 +8,7 @@ using namespace Rcpp;
 
 // idigamma
 double idigamma(double y);
-RcppExport SEXP positivemixtures_idigamma(SEXP ySEXP) {
+RcppExport SEXP _positivemixtures_idigamma(SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -19,7 +19,7 @@ END_RCPP
 }
 // logDensity
 double logDensity(double alpha, double logBeta, double logP, double q, double r);
-RcppExport SEXP positivemixtures_logDensity(SEXP alphaSEXP, SEXP logBetaSEXP, SEXP logPSEXP, SEXP qSEXP, SEXP rSEXP) {
+RcppExport SEXP _positivemixtures_logDensity(SEXP alphaSEXP, SEXP logBetaSEXP, SEXP logPSEXP, SEXP qSEXP, SEXP rSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -34,7 +34,7 @@ END_RCPP
 }
 // rGammaShapeConjugateR
 NumericVector rGammaShapeConjugateR(unsigned int n, double beta, double logP, double q, double r, Rcpp::Nullable<NumericVector> x, Rcpp::Nullable<NumericVector> prior);
-RcppExport SEXP positivemixtures_rGammaShapeConjugateR(SEXP nSEXP, SEXP betaSEXP, SEXP logPSEXP, SEXP qSEXP, SEXP rSEXP, SEXP xSEXP, SEXP priorSEXP) {
+RcppExport SEXP _positivemixtures_rGammaShapeConjugateR(SEXP nSEXP, SEXP betaSEXP, SEXP logPSEXP, SEXP qSEXP, SEXP rSEXP, SEXP xSEXP, SEXP priorSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -51,7 +51,7 @@ END_RCPP
 }
 // gpSample
 List gpSample(NumericVector y, NumericMatrix designMatrix, NumericVector betaPriorMean, NumericVector betaPriorVariance, double variancePriorAlpha, double variancePriorBeta, double tauSquaredPriorAlpha, double tauSquaredPriorBeta, unsigned int nGPBases);
-RcppExport SEXP positivemixtures_gpSample(SEXP ySEXP, SEXP designMatrixSEXP, SEXP betaPriorMeanSEXP, SEXP betaPriorVarianceSEXP, SEXP variancePriorAlphaSEXP, SEXP variancePriorBetaSEXP, SEXP tauSquaredPriorAlphaSEXP, SEXP tauSquaredPriorBetaSEXP, SEXP nGPBasesSEXP) {
+RcppExport SEXP _positivemixtures_gpSample(SEXP ySEXP, SEXP designMatrixSEXP, SEXP betaPriorMeanSEXP, SEXP betaPriorVarianceSEXP, SEXP variancePriorAlphaSEXP, SEXP variancePriorBetaSEXP, SEXP tauSquaredPriorAlphaSEXP, SEXP tauSquaredPriorBetaSEXP, SEXP nGPBasesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -70,7 +70,7 @@ END_RCPP
 }
 // rgevVector
 NumericVector rgevVector(int n, double mu, double sigma, double xi);
-RcppExport SEXP positivemixtures_rgevVector(SEXP nSEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP xiSEXP) {
+RcppExport SEXP _positivemixtures_rgevVector(SEXP nSEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP xiSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -84,7 +84,7 @@ END_RCPP
 }
 // estimatePwm
 double estimatePwm(NumericVector x, int r);
-RcppExport SEXP positivemixtures_estimatePwm(SEXP xSEXP, SEXP rSEXP) {
+RcppExport SEXP _positivemixtures_estimatePwm(SEXP xSEXP, SEXP rSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -96,7 +96,7 @@ END_RCPP
 }
 // gevPwmEstimate
 NumericVector gevPwmEstimate(NumericVector x);
-RcppExport SEXP positivemixtures_gevPwmEstimate(SEXP xSEXP) {
+RcppExport SEXP _positivemixtures_gevPwmEstimate(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -107,7 +107,7 @@ END_RCPP
 }
 // gevPwmEstimateConstrained
 NumericVector gevPwmEstimateConstrained(NumericVector x, double supportLim);
-RcppExport SEXP positivemixtures_gevPwmEstimateConstrained(SEXP xSEXP, SEXP supportLimSEXP) {
+RcppExport SEXP _positivemixtures_gevPwmEstimateConstrained(SEXP xSEXP, SEXP supportLimSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -119,7 +119,7 @@ END_RCPP
 }
 // hmmSample
 List hmmSample(unsigned int nSamples, unsigned int burnIn, NumericVector yR, StringVector distributionNames, List priors, List samplingSchemes, IntegerVector zStart, List thetaStart, int thetaSampleThinning, int zSampleThinning, int yMissingSampleThinning, unsigned int verbose);
-RcppExport SEXP positivemixtures_hmmSample(SEXP nSamplesSEXP, SEXP burnInSEXP, SEXP yRSEXP, SEXP distributionNamesSEXP, SEXP priorsSEXP, SEXP samplingSchemesSEXP, SEXP zStartSEXP, SEXP thetaStartSEXP, SEXP thetaSampleThinningSEXP, SEXP zSampleThinningSEXP, SEXP yMissingSampleThinningSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _positivemixtures_hmmSample(SEXP nSamplesSEXP, SEXP burnInSEXP, SEXP yRSEXP, SEXP distributionNamesSEXP, SEXP priorsSEXP, SEXP samplingSchemesSEXP, SEXP zStartSEXP, SEXP thetaStartSEXP, SEXP thetaSampleThinningSEXP, SEXP zSampleThinningSEXP, SEXP yMissingSampleThinningSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -141,7 +141,7 @@ END_RCPP
 }
 // independentSample
 List independentSample(unsigned int nSamples, unsigned int burnIn, NumericVector yR, StringVector distributionNames, List priors, List samplingSchemes, IntegerVector zStart, List distributionsStart, unsigned int distributionSampleThinning, unsigned int pSampleThinning, unsigned int zSampleThinning, unsigned int yMissingSampleThinning, bool progress);
-RcppExport SEXP positivemixtures_independentSample(SEXP nSamplesSEXP, SEXP burnInSEXP, SEXP yRSEXP, SEXP distributionNamesSEXP, SEXP priorsSEXP, SEXP samplingSchemesSEXP, SEXP zStartSEXP, SEXP distributionsStartSEXP, SEXP distributionSampleThinningSEXP, SEXP pSampleThinningSEXP, SEXP zSampleThinningSEXP, SEXP yMissingSampleThinningSEXP, SEXP progressSEXP) {
+RcppExport SEXP _positivemixtures_independentSample(SEXP nSamplesSEXP, SEXP burnInSEXP, SEXP yRSEXP, SEXP distributionNamesSEXP, SEXP priorsSEXP, SEXP samplingSchemesSEXP, SEXP zStartSEXP, SEXP distributionsStartSEXP, SEXP distributionSampleThinningSEXP, SEXP pSampleThinningSEXP, SEXP zSampleThinningSEXP, SEXP yMissingSampleThinningSEXP, SEXP progressSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -164,7 +164,7 @@ END_RCPP
 }
 // logisticErgodicP
 NumericMatrix logisticErgodicP(NumericMatrix deltaSamplesR, NumericMatrix zSamplesR, IntegerVector z0SamplesR, NumericMatrix designMatrixR, unsigned int order);
-RcppExport SEXP positivemixtures_logisticErgodicP(SEXP deltaSamplesRSEXP, SEXP zSamplesRSEXP, SEXP z0SamplesRSEXP, SEXP designMatrixRSEXP, SEXP orderSEXP) {
+RcppExport SEXP _positivemixtures_logisticErgodicP(SEXP deltaSamplesRSEXP, SEXP zSamplesRSEXP, SEXP z0SamplesRSEXP, SEXP designMatrixRSEXP, SEXP orderSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -179,7 +179,7 @@ END_RCPP
 }
 // logisticPredictedP
 List logisticPredictedP(List levels, unsigned int order);
-RcppExport SEXP positivemixtures_logisticPredictedP(SEXP levelsSEXP, SEXP orderSEXP) {
+RcppExport SEXP _positivemixtures_logisticPredictedP(SEXP levelsSEXP, SEXP orderSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -191,7 +191,7 @@ END_RCPP
 }
 // logisticMoments
 List logisticMoments(List distributionSamplesR, List levels, unsigned int order, bool conditionOnPositive);
-RcppExport SEXP positivemixtures_logisticMoments(SEXP distributionSamplesRSEXP, SEXP levelsSEXP, SEXP orderSEXP, SEXP conditionOnPositiveSEXP) {
+RcppExport SEXP _positivemixtures_logisticMoments(SEXP distributionSamplesRSEXP, SEXP levelsSEXP, SEXP orderSEXP, SEXP conditionOnPositiveSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -205,7 +205,7 @@ END_RCPP
 }
 // logisticFittedDelta
 NumericVector logisticFittedDelta(NumericVector deltaFamilyMeanSamples, NumericMatrix levelDesignMatrixR, NumericVector probsR);
-RcppExport SEXP positivemixtures_logisticFittedDelta(SEXP deltaFamilyMeanSamplesSEXP, SEXP levelDesignMatrixRSEXP, SEXP probsRSEXP) {
+RcppExport SEXP _positivemixtures_logisticFittedDelta(SEXP deltaFamilyMeanSamplesSEXP, SEXP levelDesignMatrixRSEXP, SEXP probsRSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -218,7 +218,7 @@ END_RCPP
 }
 // logisticGenerate
 List logisticGenerate(NumericMatrix deltaR, NumericMatrix explanatoryVariablesR, List distributionParameters, StringVector distributionNames, unsigned int order);
-RcppExport SEXP positivemixtures_logisticGenerate(SEXP deltaRSEXP, SEXP explanatoryVariablesRSEXP, SEXP distributionParametersSEXP, SEXP distributionNamesSEXP, SEXP orderSEXP) {
+RcppExport SEXP _positivemixtures_logisticGenerate(SEXP deltaRSEXP, SEXP explanatoryVariablesRSEXP, SEXP distributionParametersSEXP, SEXP distributionNamesSEXP, SEXP orderSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -233,7 +233,7 @@ END_RCPP
 }
 // logisticSampleMPI
 List logisticSampleMPI(unsigned int nSamples, unsigned int burnIn, List panelY, List panelDesignMatrix, unsigned int order, StringVector distributionNames, List priors, List samplingSchemes, List thetaStart, List panelDeltaStart, NumericVector deltaFamilyMeanStart, NumericMatrix deltaFamilyVarianceStart, Rcpp::Nullable<NumericMatrix> deltaDesignMatrix, List thinning, unsigned int verbose, bool progress);
-RcppExport SEXP positivemixtures_logisticSampleMPI(SEXP nSamplesSEXP, SEXP burnInSEXP, SEXP panelYSEXP, SEXP panelDesignMatrixSEXP, SEXP orderSEXP, SEXP distributionNamesSEXP, SEXP priorsSEXP, SEXP samplingSchemesSEXP, SEXP thetaStartSEXP, SEXP panelDeltaStartSEXP, SEXP deltaFamilyMeanStartSEXP, SEXP deltaFamilyVarianceStartSEXP, SEXP deltaDesignMatrixSEXP, SEXP thinningSEXP, SEXP verboseSEXP, SEXP progressSEXP) {
+RcppExport SEXP _positivemixtures_logisticSampleMPI(SEXP nSamplesSEXP, SEXP burnInSEXP, SEXP panelYSEXP, SEXP panelDesignMatrixSEXP, SEXP orderSEXP, SEXP distributionNamesSEXP, SEXP priorsSEXP, SEXP samplingSchemesSEXP, SEXP thetaStartSEXP, SEXP panelDeltaStartSEXP, SEXP deltaFamilyMeanStartSEXP, SEXP deltaFamilyVarianceStartSEXP, SEXP deltaDesignMatrixSEXP, SEXP thinningSEXP, SEXP verboseSEXP, SEXP progressSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -259,7 +259,7 @@ END_RCPP
 }
 // logisticSample
 List logisticSample(unsigned int nSamples, unsigned int burnIn, List panelY, List panelDesignMatrix, unsigned int order, StringVector distributionNames, List priors, List samplingSchemes, List thetaStart, List panelDeltaStart, NumericVector deltaFamilyMeanStart, NumericMatrix deltaFamilyVarianceStart, Rcpp::Nullable<NumericMatrix> deltaDesignMatrix, List thinning, unsigned int verbose, bool progress);
-RcppExport SEXP positivemixtures_logisticSample(SEXP nSamplesSEXP, SEXP burnInSEXP, SEXP panelYSEXP, SEXP panelDesignMatrixSEXP, SEXP orderSEXP, SEXP distributionNamesSEXP, SEXP priorsSEXP, SEXP samplingSchemesSEXP, SEXP thetaStartSEXP, SEXP panelDeltaStartSEXP, SEXP deltaFamilyMeanStartSEXP, SEXP deltaFamilyVarianceStartSEXP, SEXP deltaDesignMatrixSEXP, SEXP thinningSEXP, SEXP verboseSEXP, SEXP progressSEXP) {
+RcppExport SEXP _positivemixtures_logisticSample(SEXP nSamplesSEXP, SEXP burnInSEXP, SEXP panelYSEXP, SEXP panelDesignMatrixSEXP, SEXP orderSEXP, SEXP distributionNamesSEXP, SEXP priorsSEXP, SEXP samplingSchemesSEXP, SEXP thetaStartSEXP, SEXP panelDeltaStartSEXP, SEXP deltaFamilyMeanStartSEXP, SEXP deltaFamilyVarianceStartSEXP, SEXP deltaDesignMatrixSEXP, SEXP thinningSEXP, SEXP verboseSEXP, SEXP progressSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -285,7 +285,7 @@ END_RCPP
 }
 // logisticSampleY
 List logisticSampleY(List panelExplanatoryVariablesR, List panelDeltaSampleR, List panelZ0SampleR, List distributionSampleR, StringVector distributionNames, unsigned int order);
-RcppExport SEXP positivemixtures_logisticSampleY(SEXP panelExplanatoryVariablesRSEXP, SEXP panelDeltaSampleRSEXP, SEXP panelZ0SampleRSEXP, SEXP distributionSampleRSEXP, SEXP distributionNamesSEXP, SEXP orderSEXP) {
+RcppExport SEXP _positivemixtures_logisticSampleY(SEXP panelExplanatoryVariablesRSEXP, SEXP panelDeltaSampleRSEXP, SEXP panelZ0SampleRSEXP, SEXP distributionSampleRSEXP, SEXP distributionNamesSEXP, SEXP orderSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -301,7 +301,7 @@ END_RCPP
 }
 // benchmarkLogistic
 void benchmarkLogistic(unsigned int nDeltas, unsigned int nValues, unsigned int nIterations);
-RcppExport SEXP positivemixtures_benchmarkLogistic(SEXP nDeltasSEXP, SEXP nValuesSEXP, SEXP nIterationsSEXP) {
+RcppExport SEXP _positivemixtures_benchmarkLogistic(SEXP nDeltasSEXP, SEXP nValuesSEXP, SEXP nIterationsSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< unsigned int >::type nDeltas(nDeltasSEXP);
@@ -313,7 +313,7 @@ END_RCPP
 }
 // rpolyagammaVector
 NumericVector rpolyagammaVector(unsigned int length, unsigned int n, double z);
-RcppExport SEXP positivemixtures_rpolyagammaVector(SEXP lengthSEXP, SEXP nSEXP, SEXP zSEXP) {
+RcppExport SEXP _positivemixtures_rpolyagammaVector(SEXP lengthSEXP, SEXP nSEXP, SEXP zSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -326,7 +326,7 @@ END_RCPP
 }
 // thinplateBasis2d
 List thinplateBasis2d(NumericMatrix X, unsigned int nBases);
-RcppExport SEXP positivemixtures_thinplateBasis2d(SEXP XSEXP, SEXP nBasesSEXP) {
+RcppExport SEXP _positivemixtures_thinplateBasis2d(SEXP XSEXP, SEXP nBasesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -338,7 +338,7 @@ END_RCPP
 }
 // levelsToListIntegerVector
 List levelsToListIntegerVector(IntegerVector x, IntegerVector xLevels);
-RcppExport SEXP positivemixtures_levelsToListIntegerVector(SEXP xSEXP, SEXP xLevelsSEXP) {
+RcppExport SEXP _positivemixtures_levelsToListIntegerVector(SEXP xSEXP, SEXP xLevelsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -350,7 +350,7 @@ END_RCPP
 }
 // levelsToListNumericVector
 List levelsToListNumericVector(NumericVector x, IntegerVector xLevels);
-RcppExport SEXP positivemixtures_levelsToListNumericVector(SEXP xSEXP, SEXP xLevelsSEXP) {
+RcppExport SEXP _positivemixtures_levelsToListNumericVector(SEXP xSEXP, SEXP xLevelsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -362,7 +362,7 @@ END_RCPP
 }
 // levelsToListNumericMatrix
 List levelsToListNumericMatrix(NumericMatrix x, IntegerVector xLevels);
-RcppExport SEXP positivemixtures_levelsToListNumericMatrix(SEXP xSEXP, SEXP xLevelsSEXP) {
+RcppExport SEXP _positivemixtures_levelsToListNumericMatrix(SEXP xSEXP, SEXP xLevelsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -371,4 +371,37 @@ BEGIN_RCPP
     rcpp_result_gen = Rcpp::wrap(levelsToListNumericMatrix(x, xLevels));
     return rcpp_result_gen;
 END_RCPP
+}
+
+static const R_CallMethodDef CallEntries[] = {
+    {"_positivemixtures_idigamma", (DL_FUNC) &_positivemixtures_idigamma, 1},
+    {"_positivemixtures_logDensity", (DL_FUNC) &_positivemixtures_logDensity, 5},
+    {"_positivemixtures_rGammaShapeConjugateR", (DL_FUNC) &_positivemixtures_rGammaShapeConjugateR, 7},
+    {"_positivemixtures_gpSample", (DL_FUNC) &_positivemixtures_gpSample, 9},
+    {"_positivemixtures_rgevVector", (DL_FUNC) &_positivemixtures_rgevVector, 4},
+    {"_positivemixtures_estimatePwm", (DL_FUNC) &_positivemixtures_estimatePwm, 2},
+    {"_positivemixtures_gevPwmEstimate", (DL_FUNC) &_positivemixtures_gevPwmEstimate, 1},
+    {"_positivemixtures_gevPwmEstimateConstrained", (DL_FUNC) &_positivemixtures_gevPwmEstimateConstrained, 2},
+    {"_positivemixtures_hmmSample", (DL_FUNC) &_positivemixtures_hmmSample, 12},
+    {"_positivemixtures_independentSample", (DL_FUNC) &_positivemixtures_independentSample, 13},
+    {"_positivemixtures_logisticErgodicP", (DL_FUNC) &_positivemixtures_logisticErgodicP, 5},
+    {"_positivemixtures_logisticPredictedP", (DL_FUNC) &_positivemixtures_logisticPredictedP, 2},
+    {"_positivemixtures_logisticMoments", (DL_FUNC) &_positivemixtures_logisticMoments, 4},
+    {"_positivemixtures_logisticFittedDelta", (DL_FUNC) &_positivemixtures_logisticFittedDelta, 3},
+    {"_positivemixtures_logisticGenerate", (DL_FUNC) &_positivemixtures_logisticGenerate, 5},
+    {"_positivemixtures_logisticSampleMPI", (DL_FUNC) &_positivemixtures_logisticSampleMPI, 16},
+    {"_positivemixtures_logisticSample", (DL_FUNC) &_positivemixtures_logisticSample, 16},
+    {"_positivemixtures_logisticSampleY", (DL_FUNC) &_positivemixtures_logisticSampleY, 6},
+    {"_positivemixtures_benchmarkLogistic", (DL_FUNC) &_positivemixtures_benchmarkLogistic, 3},
+    {"_positivemixtures_rpolyagammaVector", (DL_FUNC) &_positivemixtures_rpolyagammaVector, 3},
+    {"_positivemixtures_thinplateBasis2d", (DL_FUNC) &_positivemixtures_thinplateBasis2d, 2},
+    {"_positivemixtures_levelsToListIntegerVector", (DL_FUNC) &_positivemixtures_levelsToListIntegerVector, 2},
+    {"_positivemixtures_levelsToListNumericVector", (DL_FUNC) &_positivemixtures_levelsToListNumericVector, 2},
+    {"_positivemixtures_levelsToListNumericMatrix", (DL_FUNC) &_positivemixtures_levelsToListNumericMatrix, 2},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_positivemixtures(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
 }

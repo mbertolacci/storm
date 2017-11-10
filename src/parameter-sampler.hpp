@@ -19,8 +19,13 @@ class ParameterSampler {
     bool useObservedInformation_;
     double observedInformationInflationFactor_;
 
+    // Gamma distribution priors
     arma::colvec priorAlpha_;
     arma::colvec priorBeta_;
+    // Log normal distribution priors
+    arma::colvec priorMu_;
+    arma::colvec priorTau_;
+
     arma::mat uniformPriorBounds_;
     arma::mat covarianceCholesky_;
 

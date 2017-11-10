@@ -17,19 +17,32 @@ ParameterSampler::ParameterSampler(List prior, List samplingScheme, Distribution
     if (samplingScheme.containsElementNamed("type")) {
         useGibbs_ = strcmp(samplingScheme["type"], "gibbs") == 0;
     } else {
-        useGibbs_ = distribution.getType() == GAMMA;
+        useGibbs_ = distribution.getType() == GAMMA || distribution.getType() == LOG_NORMAL;
     }
 
     if (useGibbs_) {
-        if (prior.containsElementNamed("alpha")) {
-            priorAlpha_ = as<arma::colvec>(prior["alpha"]);
+        if (distribution.getType() == GAMMA) {
+            if (prior.containsElementNamed("alpha")) {
+                priorAlpha_ = as<arma::colvec>(prior["alpha"]);
+            } else {
+                stop("Must provide parameters for Gibbs sampler");
+            }
+            if (prior.containsElementNamed("beta")) {
+                priorBeta_ = as<arma::colvec>(prior["beta"]);
+            } else {
+                stop("Must provide parameters for Gibbs sampler");
+            }
         } else {
-            stop("Must provide parameters for Gibbs sampler");
-        }
-        if (prior.containsElementNamed("beta")) {
-            priorBeta_ = as<arma::colvec>(prior["beta"]);
-        } else {
-            stop("Must provide parameters for Gibbs sampler");
+            if (prior.containsElementNamed("mu")) {
+                priorMu_ = as<arma::colvec>(prior["mu"]);
+            } else {
+                stop("Must provide parameters for Gibbs sampler");
+            }
+            if (prior.containsElementNamed("tau")) {
+                priorTau_ = as<arma::colvec>(prior["tau"]);
+            } else {
+                stop("Must provide parameters for Gibbs sampler");
+            }
         }
     } else {
         if (samplingScheme.containsElementNamed("use_mle")) {
@@ -60,8 +73,8 @@ ParameterSampler::ParameterSampler(List prior, List samplingScheme, Distribution
     }
 
     // Sanity checking
-    if (useGibbs_ && distribution.getType() != GAMMA) {
-        stop("Gibbs sampler supported only for Gamma distribution");
+    if (useGibbs_ && !(distribution.getType() == GAMMA || distribution.getType() == LOG_NORMAL)) {
+        stop("Gibbs sampler supported only for Gamma and Log-Normal distribution");
     }
 
     if (!useGibbs_) {
@@ -89,18 +102,41 @@ arma::colvec ParameterSampler::sampleGibbs_(
     const arma::colvec currentParameters, const DataBoundDistribution& boundDistribution
 ) {
     arma::colvec output(currentParameters);
-    double n = static_cast<double>(boundDistribution.getN());
 
-    output[0] = rGammaShapeConjugate(
-        output[1],
-        priorAlpha_[0] + boundDistribution.getSumLogY(),
-        priorAlpha_[1] + n,
-        priorAlpha_[2] + n
-    );
-    output[1] = 1 / rng.randg(
-        priorBeta_[0] + output[0] * (priorAlpha_[1] + n),
-        1 / (priorBeta_[1] + boundDistribution.getSumY())
-    );
+    if (boundDistribution.getType() == GAMMA) {
+        double n = static_cast<double>(boundDistribution.getN());
+
+        output[0] = rGammaShapeConjugate(
+            output[1],
+            priorAlpha_[0] + boundDistribution.getSumLogY(),
+            priorAlpha_[1] + n,
+            priorAlpha_[2] + n
+        );
+        output[1] = 1 / rng.randg(
+            priorBeta_[0] + output[0] * (priorAlpha_[1] + n),
+            1 / (priorBeta_[1] + boundDistribution.getSumY())
+        );
+    } else if (boundDistribution.getType() == LOG_NORMAL) {
+        double n = static_cast<double>(boundDistribution.getN());
+
+        double muPrecision = priorMu_[1] + n * currentParameters[1];
+        double muMean = (
+            priorMu_[0] * priorMu_[1]
+            + currentParameters[1] * boundDistribution.getSumLogY()
+        ) / muPrecision;
+        output[0] = muMean + rng.randn() / sqrt(muPrecision);
+
+        double tauA = priorTau_[0] + n / 2;
+        double tauB = (
+            priorTau_[1]
+            + 0.5 * (
+                boundDistribution.getSumLogYSquared()
+                - 2 * output[0] * boundDistribution.getSumLogY()
+                + n * output[0] * output[0]
+            )
+        );
+        output[1] = rng.randg(tauA, 1) / tauB;
+    }
 
     return output;
 }

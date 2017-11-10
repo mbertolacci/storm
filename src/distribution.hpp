@@ -88,7 +88,7 @@ class Distribution {
         case GENERALISED_GAMMA:
             return rgengamma(parameters[0], parameters[1], parameters[2]);
         case LOG_NORMAL:
-            return R::rlnorm(parameters[0], parameters[1]);
+            return exp(parameters[0] + rng.randn() / sqrt(parameters[1]));
         default:
             return -1;
         }
@@ -105,7 +105,7 @@ class DataBoundDistribution {
     );
 
     DataBoundDistribution(
-        unsigned int thisN, double sumY, double sumLogY, Distribution distribution
+        unsigned int thisN, double sumY, double sumLogY, double sumLogYSquared, Distribution distribution
     );
 
     double logLikelihood(arma::colvec parameters) const;
@@ -122,6 +122,8 @@ class DataBoundDistribution {
         return distribution_.isInSupport(x, parameters);
     }
 
+    DistributionType getType() const { return distribution_.getType(); }
+
     arma::colvec maximumLikelihoodEstimate(arma::colvec start) const;
 
     arma::mat hessian(arma::colvec parameters) const;
@@ -132,6 +134,10 @@ class DataBoundDistribution {
 
     double getSumLogY() const {
         return sumLogY_;
+    }
+
+    double getSumLogYSquared() const {
+        return sumLogYSquared_;
     }
 
     unsigned int getN() const {
@@ -146,6 +152,7 @@ class DataBoundDistribution {
     unsigned int thisN_;
     double sumY_;
     double sumLogY_;
+    double sumLogYSquared_;
     Distribution distribution_;
 
     arma::colvec2 genGammaEllPrime(arma::colvec2 parameters) const;
@@ -158,6 +165,8 @@ class ParameterBoundDistribution {
           distribution_(distribution) {
         if (distribution_.getType() == GAMMA) {
             norm_ = pow(parameters_[1], -parameters_[0]) / tgamma(parameters_[0]);
+        } else if (distribution_.getType() == LOG_NORMAL) {
+            norm_ = -0.5 * log(parameters_[1]) + 0.5 * log(2 * M_PI);
         } else if (distribution_.getType() == GENERALISED_GAMMA) {
             double sigma = parameters_[1];
             double Q = parameters_[2];
@@ -184,9 +193,12 @@ class ParameterBoundDistribution {
             double Qw = Q * (log(x) - parameters_[0]) / parameters_[1];
             return exp(norm_ + (Qw - exp(Qw)) / (Q * Q)) / x;
         }
-        case LOG_NORMAL:
-            return R::dlnorm(x, parameters_[0], parameters_[1], false);
-        default:
+        case LOG_NORMAL: {
+            double mu = parameters_[0];
+            double tau = parameters_[1];
+            double logX = log(x);
+            return exp(-logX - tau * (logX - mu) * (logX - mu) / 2 - norm_);
+        } default:
             return -1;
         }
     }

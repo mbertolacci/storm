@@ -1,13 +1,15 @@
 .distribution_parameter_names <- list(
     gamma = c('alpha', 'beta'),
     gev = c('mu', 'sigma', 'xi'),
-    gengamma = c('mu', 'sigma', 'Q')
+    gengamma = c('mu', 'sigma', 'Q'),
+    lnorm = c('mu', 'tau')
 )
 
 .distribution_n_vars <- list(
     gamma = 2,
     gengamma = 3,
-    gev = 3
+    gev = 3,
+    lnorm = 2
 )
 
 .get_parameter_names <- function(distributions) {
@@ -37,6 +39,11 @@
                 return(list(alpha = c(0, 1, 1), beta = c(1.1, 2)))
             }
             return(list(type = 'uniform', bounds = matrix(c(0, 0, 1000, 1000), nrow = 2)))
+        } else if (distribution == 'lnorm') {
+            if (sampling_schemes[[i]]$type == 'gibbs') {
+                return(list(mu = c(0, 0.001), tau = c(0.001, 0.001)))
+            }
+            return(list(type = 'uniform', bounds = matrix(c(-1000, 0, 1000, 1000), nrow = 2)))
         } else if (distribution == 'gengamma') {
             return(list(type = 'uniform', bounds = matrix(c(-1000, 0, -100, 1000, 1000, 100), nrow = 3)))
         } else if (distribution == 'gev') {
@@ -47,7 +54,7 @@
 
 .default_sampling_scheme <- function(distributions) {
     lapply(distributions, function(distribution) {
-        if (distribution == 'gamma') {
+        if (distribution == 'gamma' || distribution == 'lnorm') {
             return(list(type = 'gibbs'))
         } else if (distribution == 'gengamma') {
             return(list(
@@ -139,6 +146,11 @@
                 stop('gengamma mle did not converge')
             }
             distributions_start <- append(distributions_start, list(results$par))
+        } else if (distributions[i] == 'lnorm') {
+            distributions_start <- append(distributions_start, list(c(
+                mean(log(y_mixture)),
+                1 / var(log(y_mixture))
+            )))
         }
     }
     futile.logger::flog.debug('Starting parameter values are %s', list(distributions_start))

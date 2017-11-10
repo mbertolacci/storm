@@ -26,6 +26,7 @@ class LogisticSamplerMPI : public LogisticSampler {
     arma::ucolvec nCurrent_;
     arma::colvec sumYCurrent_;
     arma::colvec sumLogYCurrent_;
+    arma::colvec sumLogYSquaredCurrent_;
 
     arma::mat UtUAll_;
 
