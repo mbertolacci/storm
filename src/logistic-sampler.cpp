@@ -161,7 +161,7 @@ LogisticSampler::LogisticSampler(
 void LogisticSampler::start() {}
 
 void LogisticSampler::next() {
-    #pragma omp parallel for schedule(dynamic, 1)
+    #pragma omp parallel for
     for (unsigned int level = 0; level < nDataLevels_; ++level) {
         sampleLevel_(level);
     }
