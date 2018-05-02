@@ -1,6 +1,7 @@
 #' @export
 ptsm_logistic_generate <- function(
-    data, formula, distributions, component_parameters, order = 1,
+    data, formula, distributions, component_parameters,
+    order = 1,
     delta_family_mean = NULL, delta_family_variance = NULL, delta = NULL,
     level_data = NULL,
     level_formula = NULL,
@@ -74,6 +75,7 @@ ptsm_logistic_generate <- function(
     }
     output <- list(
         data = data.frame(z = output_z, y = output_y),
+        explanatory_variables = explanatory_variables,
         delta = delta
     )
     if (length(output$delta) == 1) {
