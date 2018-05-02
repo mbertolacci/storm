@@ -655,7 +655,11 @@ window.ptsmlogistic <- function(x, ...) {
     }
     x[['sample']][['delta']] <- window(x[['sample']][['delta']], ...)
     x[['sample']][['z0']] <- window(x[['sample']][['z0']], ...)
-    x[['sample']][['delta_family_mean']] <- window(x[['sample']][['delta_family_mean']], ...)
-    x[['sample']][['delta_family_variance']] <- window(x[['sample']][['delta_family_variance']], ...)
+    if (!is.null(x[['sample']][['delta_family_mean']])) {
+        x[['sample']][['delta_family_mean']] <- window(x[['sample']][['delta_family_mean']], ...)
+    }
+    if (!is.null(x[['sample']][['delta_family_variance']])) {
+        x[['sample']][['delta_family_variance']] <- window(x[['sample']][['delta_family_variance']], ...)
+    }
     return(x)
 }
