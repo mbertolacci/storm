@@ -58,10 +58,12 @@ ptsm_logistic_predicted_p <- function(delta_samples, z0_samples, design_matrix, 
         z0_samples <- as.matrix(z0_samples)
     }
 
+    stopifnot(order == 1)
     stopifnot(length(dim(delta_samples)) == 4)
     stopifnot(dim(delta_samples)[4] == nlevels(data_levels))
 
     stopifnot(length(dim(z0_samples)) == 2)
+    stopifnot(nrow(z0_samples) == dim(delta_samples)[1])
     stopifnot(ncol(z0_samples) == nlevels(data_levels))
 
     level_input <- .prepare_level_input(delta_samples, z0_samples, design_matrix, data_levels)
