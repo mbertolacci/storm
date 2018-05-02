@@ -311,6 +311,39 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// spearmanPairwiseCorrelation
+NumericMatrix spearmanPairwiseCorrelation(NumericMatrix inputR);
+RcppExport SEXP _positivemixtures_spearmanPairwiseCorrelation(SEXP inputRSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type inputR(inputRSEXP);
+    rcpp_result_gen = Rcpp::wrap(spearmanPairwiseCorrelation(inputR));
+    return rcpp_result_gen;
+END_RCPP
+}
+// pairwiseConditionalProbabilities
+NumericMatrix pairwiseConditionalProbabilities(LogicalMatrix inputR);
+RcppExport SEXP _positivemixtures_pairwiseConditionalProbabilities(SEXP inputRSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< LogicalMatrix >::type inputR(inputRSEXP);
+    rcpp_result_gen = Rcpp::wrap(pairwiseConditionalProbabilities(inputR));
+    return rcpp_result_gen;
+END_RCPP
+}
+// pairwiseLogOddsOfMatch
+NumericMatrix pairwiseLogOddsOfMatch(LogicalMatrix inputR);
+RcppExport SEXP _positivemixtures_pairwiseLogOddsOfMatch(SEXP inputRSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< LogicalMatrix >::type inputR(inputRSEXP);
+    rcpp_result_gen = Rcpp::wrap(pairwiseLogOddsOfMatch(inputR));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rpolyagammaVector
 NumericVector rpolyagammaVector(unsigned int length, unsigned int n, double z);
 RcppExport SEXP _positivemixtures_rpolyagammaVector(SEXP lengthSEXP, SEXP nSEXP, SEXP zSEXP) {
@@ -408,6 +441,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_positivemixtures_logisticSample", (DL_FUNC) &_positivemixtures_logisticSample, 16},
     {"_positivemixtures_logisticSampleY", (DL_FUNC) &_positivemixtures_logisticSampleY, 6},
     {"_positivemixtures_benchmarkLogistic", (DL_FUNC) &_positivemixtures_benchmarkLogistic, 3},
+    {"_positivemixtures_spearmanPairwiseCorrelation", (DL_FUNC) &_positivemixtures_spearmanPairwiseCorrelation, 1},
+    {"_positivemixtures_pairwiseConditionalProbabilities", (DL_FUNC) &_positivemixtures_pairwiseConditionalProbabilities, 1},
+    {"_positivemixtures_pairwiseLogOddsOfMatch", (DL_FUNC) &_positivemixtures_pairwiseLogOddsOfMatch, 1},
     {"_positivemixtures_rpolyagammaVector", (DL_FUNC) &_positivemixtures_rpolyagammaVector, 3},
     {"_positivemixtures_thinplateBasis2d", (DL_FUNC) &_positivemixtures_thinplateBasis2d, 2},
     {"_positivemixtures_levelsToListIntegerVector", (DL_FUNC) &_positivemixtures_levelsToListIntegerVector, 2},

@@ -80,6 +80,21 @@ benchmarkLogistic <- function(nDeltas, nValues, nIterations) {
     invisible(.Call('_positivemixtures_benchmarkLogistic', PACKAGE = 'positivemixtures', nDeltas, nValues, nIterations))
 }
 
+#' @export
+spearman_pairwise_correlation <- function(inputR) {
+    .Call('_positivemixtures_spearmanPairwiseCorrelation', PACKAGE = 'positivemixtures', inputR)
+}
+
+#' @export
+pairwise_conditional_probabilities <- function(inputR) {
+    .Call('_positivemixtures_pairwiseConditionalProbabilities', PACKAGE = 'positivemixtures', inputR)
+}
+
+#' @export
+pairwise_log_odds_of_match <- function(inputR) {
+    .Call('_positivemixtures_pairwiseLogOddsOfMatch', PACKAGE = 'positivemixtures', inputR)
+}
+
 rpolyagamma <- function(length, n, z) {
     .Call('_positivemixtures_rpolyagammaVector', PACKAGE = 'positivemixtures', length, n, z)
 }
