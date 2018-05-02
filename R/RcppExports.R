@@ -68,8 +68,8 @@ gevPwmEstimateConstrained <- function(x, supportLim) {
     .Call('_positivemixtures_logisticSampleMPI', PACKAGE = 'positivemixtures', nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress)
 }
 
-.ptsm_logistic_sample <- function(nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose = 0L, progress = FALSE) {
-    .Call('_positivemixtures_logisticSample', PACKAGE = 'positivemixtures', nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress)
+.ptsm_logistic_sample <- function(nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose = 0L, progress = FALSE, numThreads = 0L) {
+    .Call('_positivemixtures_logisticSample', PACKAGE = 'positivemixtures', nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress, numThreads)
 }
 
 .ptsm_logistic_sample_y <- function(panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames, order, progress = FALSE) {

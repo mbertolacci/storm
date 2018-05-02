@@ -1,6 +1,7 @@
 #include <chrono>
 #include <RcppArmadillo.h>
 #include <vector>
+#include <omp.h>
 
 #include "hypercube4.hpp"
 #include "logistic-sampler.hpp"
@@ -35,9 +36,14 @@ List logisticSample(
     List panelDeltaStart, NumericVector deltaFamilyMeanStart, NumericMatrix deltaFamilyVarianceStart,
     Rcpp::Nullable<NumericMatrix> deltaDesignMatrix,
     List thinning,
-    unsigned int verbose = 0, bool progress = false
+    unsigned int verbose = 0, bool progress = false,
+    int numThreads = 0
 ) {
     RNG::initialise();
+
+    if (numThreads > 0) {
+        omp_set_num_threads(numThreads);
+    }
 
     LogisticSampler sampler(
         panelY, panelDesignMatrix, order,

@@ -176,7 +176,9 @@ ptsm_logistic_sample <- function(
     panel_variable = NULL,
     level_data = NULL, level_formula = NULL,
     verbose = 0, progress = FALSE,
-    mpi = FALSE, checkpoints = 0, checkpoint_path = 'checkpoints', ...
+    mpi = FALSE, checkpoints = 0, checkpoint_path = 'checkpoints',
+    num_threads = 0,
+    ...
 ) {
     use_checkpoints <- checkpoints > 0
     if (use_checkpoints && mpi) {
@@ -200,7 +202,7 @@ ptsm_logistic_sample <- function(
             panel_variable,
             level_data, level_formula,
             verbose, progress,
-            mpi, ...
+            mpi, num_threads, ...
         )
 
         configuration <- starting_configuration$configuration
@@ -319,7 +321,7 @@ ptsm_logistic_sample <- function(
     panel_variable = NULL,
     level_data = NULL, level_formula = NULL,
     verbose = 0, progress = FALSE,
-    mpi = FALSE, ...
+    mpi = FALSE, num_threads = 0, ...
 ) {
     stopifnot(order >= 0 && order <= 1)
 
@@ -435,9 +437,10 @@ ptsm_logistic_sample <- function(
                 distributions, prior, sampling_scheme,
                 level_design_matrix,
                 thinning,
-                verbose, progress
+                verbose, progress, num_threads
             ),
             mpi = mpi,
+            num_threads = num_threads,
             thinning = thinning,
             attach_data = attach_data,
             attach_level_data = attach_level_data,
@@ -473,7 +476,7 @@ ptsm_logistic_sample <- function(
                 starting_values$delta_family_mean,
                 starting_values$delta_family_variance
             ),
-            configuration$sampler_arguments[7 :10]
+            configuration$sampler_arguments[7 : 11]
         )
     ))
 }
