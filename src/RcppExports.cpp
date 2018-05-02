@@ -372,6 +372,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// fastMatrixSpread
+NumericMatrix fastMatrixSpread(NumericVector values, IntegerVector rowLevels, unsigned int nRowLevels, IntegerVector columnLevels, unsigned int nColumnLevels);
+RcppExport SEXP _positivemixtures_fastMatrixSpread(SEXP valuesSEXP, SEXP rowLevelsSEXP, SEXP nRowLevelsSEXP, SEXP columnLevelsSEXP, SEXP nColumnLevelsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type values(valuesSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type rowLevels(rowLevelsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type nRowLevels(nRowLevelsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type columnLevels(columnLevelsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type nColumnLevels(nColumnLevelsSEXP);
+    rcpp_result_gen = Rcpp::wrap(fastMatrixSpread(values, rowLevels, nRowLevels, columnLevels, nColumnLevels));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_positivemixtures_idigamma", (DL_FUNC) &_positivemixtures_idigamma, 1},
@@ -398,6 +413,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_positivemixtures_levelsToListIntegerVector", (DL_FUNC) &_positivemixtures_levelsToListIntegerVector, 2},
     {"_positivemixtures_levelsToListNumericVector", (DL_FUNC) &_positivemixtures_levelsToListNumericVector, 2},
     {"_positivemixtures_levelsToListNumericMatrix", (DL_FUNC) &_positivemixtures_levelsToListNumericMatrix, 2},
+    {"_positivemixtures_fastMatrixSpread", (DL_FUNC) &_positivemixtures_fastMatrixSpread, 5},
     {NULL, NULL, 0}
 };
 

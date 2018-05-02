@@ -74,3 +74,15 @@
     }
     return(output)
 }
+
+#' @export
+fast_matrix_spread <- function(values, row_labels, column_labels) {
+    row_factor <- factor(row_labels)
+    column_factor <- factor(column_labels)
+
+    .fast_matrix_spread(
+        values,
+        row_factor, nlevels(row_factor),
+        column_factor, nlevels(column_factor)
+    )
+}

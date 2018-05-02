@@ -3,6 +3,7 @@
 S3method(window,ptsmlogistic)
 export(dgengamma)
 export(dgev)
+export(fast_matrix_spread)
 export(fgev)
 export(fgev_constrained)
 export(fgev_constrained_loose)

@@ -167,3 +167,22 @@ List levelsToListNumericMatrix(NumericMatrix x, IntegerVector xLevels) {
 
     return output;
 }
+
+// [[Rcpp::export(name=".fast_matrix_spread")]]
+NumericMatrix fastMatrixSpread(
+    NumericVector values,
+    IntegerVector rowLevels, unsigned int nRowLevels,
+    IntegerVector columnLevels, unsigned int nColumnLevels
+) {
+    NumericMatrix output(nRowLevels, nColumnLevels);
+    output.fill(NA_REAL);
+
+    for (unsigned int i = 0; i < values.size(); ++i) {
+        output(
+            rowLevels[i] - 1,
+            columnLevels[i] - 1
+        ) = values[i];
+    }
+
+    return output;
+}
