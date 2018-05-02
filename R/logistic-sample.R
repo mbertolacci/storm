@@ -583,6 +583,8 @@ ptsm_logistic_sample <- function(
         results$level_design_matrix <- configuration$level_design_matrix
     }
 
+    class(results) <- 'ptsmlogistic'
+
     return(results)
 }
 
