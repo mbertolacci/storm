@@ -587,7 +587,7 @@ ptsm_logistic_sample <- function(
 }
 
 #' @export
-ptsm_logistic_sample_y <- function(sampler_results) {
+ptsm_logistic_sample_y <- function(sampler_results, progress = FALSE) {
     if (is.null(sampler_results$panel_variable)) {
         data_levels <- factor(rep('dummy', nrow(sampler_results$data)))
         original_dim <- dim(sampler_results$sample$delta)
@@ -597,6 +597,7 @@ ptsm_logistic_sample_y <- function(sampler_results) {
         data_levels <- sampler_results$data[[sampler_results$panel_variable]]
     }
 
+    futile.logger::flog.trace('Splitting samples', name = 'ptsm.logistic_sample_y')
     panel_design_matrix <- .levels_to_list(sampler_results$design_matrix, data_levels)
     panel_delta_sample <- lapply(1 : nlevels(data_levels), function(level_index) {
         # aperm puts the iteration index last, which is useful inside the function
@@ -609,15 +610,18 @@ ptsm_logistic_sample_y <- function(sampler_results) {
         sampler_results$sample$z0[, level_index]
     })
 
+    futile.logger::flog.trace('Sampling values', name = 'ptsm.logistic_sample_y')
     inner_results <- .ptsm_logistic_sample_y(
         panel_design_matrix,
         panel_delta_sample,
         panel_z0_sample,
         sampler_results$sample$distribution,
         sampler_results$distributions,
-        sampler_results$order
+        sampler_results$order,
+        progress = progress
     )
 
+    futile.logger::flog.trace('Joining y samples', name = 'ptsm.logistic_sample_y')
     output <- list()
     output$y_sample <- .levels_from_list(inner_results$panel_y_sample, data_levels, 1)
     inner_results$panel_y_sample <- NULL
@@ -627,6 +631,7 @@ ptsm_logistic_sample_y <- function(sampler_results) {
         thin = thin(sampler_results$sample$delta)
     )
 
+    futile.logger::flog.trace('Joining z samples', name = 'ptsm.logistic_sample_y')
     output$y_sample_z <- .levels_from_list(inner_results$panel_y_sample_z, data_levels, 1)
     inner_results$panel_y_sample_z <- NULL
     output$y_sample_z <- coda::mcmc(
@@ -634,8 +639,6 @@ ptsm_logistic_sample_y <- function(sampler_results) {
         start = start(sampler_results$sample$delta),
         thin = thin(sampler_results$sample$delta)
     )
-
-    class(output) <- 'ptsmlogistic'
 
     return(output)
 }

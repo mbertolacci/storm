@@ -56,14 +56,12 @@ List logisticSample(
     ).asList();
 }
 
-
-
 // [[Rcpp::export(name=".ptsm_logistic_sample_y")]]
 List logisticSampleY(
     List panelExplanatoryVariablesR, List panelDeltaSampleR, List panelZ0SampleR,
     List distributionSampleR,
     StringVector distributionNames,
-    unsigned int order
+    unsigned int order, bool progress = false
 ) {
     RNG::initialise();
 
@@ -145,7 +143,7 @@ List logisticSampleY(
         }
 
         Rcpp::checkUserInterrupt();
-        ++progressBar;
+        if (progress) ++progressBar;
     }
 
     List results;

@@ -284,8 +284,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // logisticSampleY
-List logisticSampleY(List panelExplanatoryVariablesR, List panelDeltaSampleR, List panelZ0SampleR, List distributionSampleR, StringVector distributionNames, unsigned int order);
-RcppExport SEXP _positivemixtures_logisticSampleY(SEXP panelExplanatoryVariablesRSEXP, SEXP panelDeltaSampleRSEXP, SEXP panelZ0SampleRSEXP, SEXP distributionSampleRSEXP, SEXP distributionNamesSEXP, SEXP orderSEXP) {
+List logisticSampleY(List panelExplanatoryVariablesR, List panelDeltaSampleR, List panelZ0SampleR, List distributionSampleR, StringVector distributionNames, unsigned int order, bool progress);
+RcppExport SEXP _positivemixtures_logisticSampleY(SEXP panelExplanatoryVariablesRSEXP, SEXP panelDeltaSampleRSEXP, SEXP panelZ0SampleRSEXP, SEXP distributionSampleRSEXP, SEXP distributionNamesSEXP, SEXP orderSEXP, SEXP progressSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -295,7 +295,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< List >::type distributionSampleR(distributionSampleRSEXP);
     Rcpp::traits::input_parameter< StringVector >::type distributionNames(distributionNamesSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type order(orderSEXP);
-    rcpp_result_gen = Rcpp::wrap(logisticSampleY(panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames, order));
+    Rcpp::traits::input_parameter< bool >::type progress(progressSEXP);
+    rcpp_result_gen = Rcpp::wrap(logisticSampleY(panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames, order, progress));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -465,7 +466,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_positivemixtures_logisticGenerate", (DL_FUNC) &_positivemixtures_logisticGenerate, 5},
     {"_positivemixtures_logisticSampleMPI", (DL_FUNC) &_positivemixtures_logisticSampleMPI, 16},
     {"_positivemixtures_logisticSample", (DL_FUNC) &_positivemixtures_logisticSample, 16},
-    {"_positivemixtures_logisticSampleY", (DL_FUNC) &_positivemixtures_logisticSampleY, 6},
+    {"_positivemixtures_logisticSampleY", (DL_FUNC) &_positivemixtures_logisticSampleY, 7},
     {"_positivemixtures_benchmarkLogistic", (DL_FUNC) &_positivemixtures_benchmarkLogistic, 3},
     {"_positivemixtures_spearmanPairwiseCorrelation", (DL_FUNC) &_positivemixtures_spearmanPairwiseCorrelation, 1},
     {"_positivemixtures_pairwiseConditionalProbabilities", (DL_FUNC) &_positivemixtures_pairwiseConditionalProbabilities, 1},
