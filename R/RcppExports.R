@@ -115,3 +115,15 @@ thinplate_basis_2d <- function(X, nBases) {
     .Call('_positivemixtures_levelsToListNumericMatrix', PACKAGE = 'positivemixtures', x, xLevels)
 }
 
+.levels_from_list_column_numeric_matrix <- function(input, levels, nLevels) {
+    .Call('_positivemixtures_levelsFromListColumnNumericMatrix', PACKAGE = 'positivemixtures', input, levels, nLevels)
+}
+
+.levels_from_list_column_integer_matrix <- function(input, levels, nLevels) {
+    .Call('_positivemixtures_levelsFromListColumnIntegerMatrix', PACKAGE = 'positivemixtures', input, levels, nLevels)
+}
+
+.fast_matrix_spread <- function(values, rowLevels, nRowLevels, columnLevels, nColumnLevels) {
+    .Call('_positivemixtures_fastMatrixSpread', PACKAGE = 'positivemixtures', values, rowLevels, nRowLevels, columnLevels, nColumnLevels)
+}
+

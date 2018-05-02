@@ -405,6 +405,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// levelsFromListColumnNumericMatrix
+NumericMatrix levelsFromListColumnNumericMatrix(List input, IntegerVector levels, unsigned int nLevels);
+RcppExport SEXP _positivemixtures_levelsFromListColumnNumericMatrix(SEXP inputSEXP, SEXP levelsSEXP, SEXP nLevelsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type input(inputSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type levels(levelsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type nLevels(nLevelsSEXP);
+    rcpp_result_gen = Rcpp::wrap(levelsFromListColumnNumericMatrix(input, levels, nLevels));
+    return rcpp_result_gen;
+END_RCPP
+}
+// levelsFromListColumnIntegerMatrix
+IntegerMatrix levelsFromListColumnIntegerMatrix(List input, IntegerVector levels, unsigned int nLevels);
+RcppExport SEXP _positivemixtures_levelsFromListColumnIntegerMatrix(SEXP inputSEXP, SEXP levelsSEXP, SEXP nLevelsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type input(inputSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type levels(levelsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type nLevels(nLevelsSEXP);
+    rcpp_result_gen = Rcpp::wrap(levelsFromListColumnIntegerMatrix(input, levels, nLevels));
+    return rcpp_result_gen;
+END_RCPP
+}
 // fastMatrixSpread
 NumericMatrix fastMatrixSpread(NumericVector values, IntegerVector rowLevels, unsigned int nRowLevels, IntegerVector columnLevels, unsigned int nColumnLevels);
 RcppExport SEXP _positivemixtures_fastMatrixSpread(SEXP valuesSEXP, SEXP rowLevelsSEXP, SEXP nRowLevelsSEXP, SEXP columnLevelsSEXP, SEXP nColumnLevelsSEXP) {
@@ -449,6 +475,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_positivemixtures_levelsToListIntegerVector", (DL_FUNC) &_positivemixtures_levelsToListIntegerVector, 2},
     {"_positivemixtures_levelsToListNumericVector", (DL_FUNC) &_positivemixtures_levelsToListNumericVector, 2},
     {"_positivemixtures_levelsToListNumericMatrix", (DL_FUNC) &_positivemixtures_levelsToListNumericMatrix, 2},
+    {"_positivemixtures_levelsFromListColumnNumericMatrix", (DL_FUNC) &_positivemixtures_levelsFromListColumnNumericMatrix, 3},
+    {"_positivemixtures_levelsFromListColumnIntegerMatrix", (DL_FUNC) &_positivemixtures_levelsFromListColumnIntegerMatrix, 3},
     {"_positivemixtures_fastMatrixSpread", (DL_FUNC) &_positivemixtures_fastMatrixSpread, 5},
     {NULL, NULL, 0}
 };

@@ -10,6 +10,7 @@ using arma::mat;
 using arma::max;
 using arma::ucolvec;
 
+using Rcpp::IntegerMatrix;
 using Rcpp::IntegerVector;
 using Rcpp::List;
 using Rcpp::NumericMatrix;
@@ -166,6 +167,31 @@ List levelsToListNumericMatrix(NumericMatrix x, IntegerVector xLevels) {
     }
 
     return output;
+}
+
+template<typename T>
+T levelsFromListColumn(List input, IntegerVector levels, unsigned int nLevels) {
+    std::vector<int> levelIndex(nLevels, 0);
+
+    unsigned int nColumns = levels.size();
+    T output(Rcpp::as<T>(input[0]).nrow(), nColumns);
+    for (unsigned int i = 0; i < nColumns; ++i) {
+        int level = levels[i] - 1;
+        output.column(i) = Rcpp::as<T>(input[level]).column(levelIndex[level]);
+        ++levelIndex[level];
+    }
+
+    return output;
+}
+
+// [[Rcpp::export(name=".levels_from_list_column_numeric_matrix")]]
+NumericMatrix levelsFromListColumnNumericMatrix(List input, IntegerVector levels, unsigned int nLevels) {
+    return levelsFromListColumn<NumericMatrix>(input, levels, nLevels);
+}
+
+// [[Rcpp::export(name=".levels_from_list_column_integer_matrix")]]
+IntegerMatrix levelsFromListColumnIntegerMatrix(List input, IntegerVector levels, unsigned int nLevels) {
+    return levelsFromListColumn<IntegerMatrix>(input, levels, nLevels);
 }
 
 // [[Rcpp::export(name=".fast_matrix_spread")]]

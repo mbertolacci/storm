@@ -41,18 +41,6 @@
     return(output)
 }
 
-.levels_from_list_column <- function(values, value_levels) {
-    n_levels <- nlevels(value_levels)
-    output <- matrix(0, nrow = nrow(values[[1]]), ncol = length(value_levels))
-
-    for (level_index in 1 : n_levels) {
-        level_indices <- which(levels(value_levels)[level_index] == value_levels)
-        output[, level_indices] <- values[[level_index]]
-    }
-
-    return(output)
-}
-
 # Roughly speaking, the inverse of the function above
 .levels_from_list <- function(values, value_levels, dim = 0) {
     n_dim <- length(dim(values[[1]]))
@@ -60,7 +48,11 @@
     if (dim == 0 || n_dim == 1) {
         return(.levels_from_list_row(values, value_levels))
     } else {
-        return(.levels_from_list_column(values, value_levels))
+        if (class(values[[1]][1]) == 'integer') {
+            return(.levels_from_list_column_integer_matrix(values, value_levels, nlevels(value_levels)))
+        } else {
+            return(.levels_from_list_column_numeric_matrix(values, value_levels, nlevels(value_levels)))
+        }
     }
 }
 
