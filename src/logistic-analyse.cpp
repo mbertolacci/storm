@@ -69,48 +69,60 @@ NumericMatrix logisticErgodicP(
 
 class PredictedPGenerator {
  public:
-    explicit PredictedPGenerator(const mat delta, const mat designMatrix, unsigned int z0)
+    explicit PredictedPGenerator(const mat delta, const mat designMatrix, unsigned int z0, unsigned int order)
         : delta_(delta),
           designMatrix_(designMatrix),
+          order_(order),
           currentIndex_(0) {
-        previousP_.set_size(delta.n_rows + 1);
-        previousP_.zeros();
-
-        previousP_[z0 - 1] = 1;
+        if (order_ > 0) {
+            previousP_.set_size(delta.n_rows + 1);
+            previousP_.zeros();
+            previousP_[z0 - 1] = 1;
+        }
     }
 
     colvec getNext() {
         unsigned int nComponents = delta_.n_rows + 1;
 
-        // Indices are [from, to]
-        mat pTransition(nComponents, nComponents, arma::fill::zeros);
-        for (unsigned int k = 0; k < nComponents; ++k) {
-            if (k == 0) continue;
+        colvec output(nComponents);
 
-            double sum = arma::dot(
-                delta_.row(k - 1).head(delta_.n_cols - nComponents + 1),
-                designMatrix_.row(currentIndex_)
-            );
+        if (order_ == 0) {
+            colvec sums = delta_ * designMatrix_.row(currentIndex_).t();
+            // The first value is always 0 by design
+            sums.insert_rows(0, 1, true);
+            output = exp(sums - sums.max());
+            output /= arma::sum(output);
+        } else {
+            // Indices are [from, to]
+            mat pTransition(nComponents, nComponents, arma::fill::zeros);
+            for (unsigned int k = 0; k < nComponents; ++k) {
+                if (k == 0) continue;
 
-            for (unsigned int kk = 0; kk < nComponents; ++kk) {
-                if (kk == 0) {
-                    pTransition(kk, k) = sum;
-                } else {
-                    pTransition(kk, k) = sum + delta_(k - 1, delta_.n_cols + kk - 1 - delta_.n_rows);
+                double sum = arma::dot(
+                    delta_.row(k - 1).head(delta_.n_cols - nComponents + 1),
+                    designMatrix_.row(currentIndex_)
+                );
+
+                for (unsigned int kk = 0; kk < nComponents; ++kk) {
+                    if (kk == 0) {
+                        pTransition(kk, k) = sum;
+                    } else {
+                        pTransition(kk, k) = sum + delta_(k - 1, delta_.n_cols + kk - 1 - delta_.n_rows);
+                    }
                 }
             }
-        }
-        pTransition = exp(pTransition - pTransition.max());
-        for (unsigned int k = 0; k < nComponents; ++k) {
-            pTransition.row(k) /= arma::sum(pTransition.row(k));
+            pTransition = exp(pTransition - pTransition.max());
+            for (unsigned int k = 0; k < nComponents; ++k) {
+                pTransition.row(k) /= arma::sum(pTransition.row(k));
+            }
+
+            for (unsigned int k = 0; k < nComponents; ++k) {
+                output[k] = arma::dot(previousP_, pTransition.col(k));
+            }
+
+            previousP_ = output;
         }
 
-        colvec output(nComponents);
-        for (unsigned int k = 0; k < nComponents; ++k) {
-            output[k] = arma::dot(previousP_, pTransition.col(k));
-        }
-
-        previousP_ = output;
         currentIndex_++;
 
         return output;
@@ -119,6 +131,7 @@ class PredictedPGenerator {
  private:
     const mat delta_;
     const mat designMatrix_;
+    unsigned int order_;
 
     colvec previousP_;
     unsigned int currentIndex_;
@@ -131,7 +144,7 @@ mat logisticPredictedPLevel(
 
     for (unsigned int sampleIndex = 0; sampleIndex < deltaSamples.n_slices; ++sampleIndex) {
         PredictedPGenerator pGenerator = PredictedPGenerator(
-            deltaSamples.slice(sampleIndex), designMatrix, z0Samples[sampleIndex]
+            deltaSamples.slice(sampleIndex), designMatrix, z0Samples[sampleIndex], order
         );
 
         for (unsigned int i = 0; i < designMatrix.n_rows; ++i) {
@@ -179,7 +192,7 @@ mat logisticMomentsLevel(
 
     for (unsigned int sampleIndex = 0; sampleIndex < deltaSamples.n_slices; ++sampleIndex) {
         PredictedPGenerator pGenerator = PredictedPGenerator(
-            deltaSamples.slice(sampleIndex), designMatrix, z0Samples[sampleIndex]
+            deltaSamples.slice(sampleIndex), designMatrix, z0Samples[sampleIndex], order
         );
 
         for (unsigned int i = 0; i < designMatrix.n_rows; ++i) {

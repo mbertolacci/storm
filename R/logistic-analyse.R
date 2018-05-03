@@ -40,9 +40,13 @@ logistic_ergodic_p <- function(
         level <- levels(data_levels)[level_index]
         level_indices <- data_levels == level
 
+        # HACK(mgnb): this prevent phantom dropping when other dims have only one entry
+        level_delta <- delta_samples[, , , level_index, drop = FALSE]
+        dim(level_delta) <- dim(level_delta)[1 : 3]
+
         level_input <- c(level_input, list(list(
             design_matrix = design_matrix[level_indices, ],
-            delta = aperm(delta_samples[, , , level_index], c(2, 3, 1)),
+            delta = aperm(level_delta, c(2, 3, 1)),
             z0 = z0_samples[, level_index]
         )))
     }
@@ -52,13 +56,14 @@ logistic_ergodic_p <- function(
 
 #' @export
 logistic_predicted_p <- function(delta_samples, z0_samples, design_matrix, data_levels = NULL, order = 1) {
+    stopifnot(order < 0 || order > 1)
+
     if (is.null(data_levels)) {
         data_levels <- as.factor(rep('dummy', nrow(design_matrix)))
-        dim(delta_samples) <- c(dim(delta_samples)[1], dim(delta_samples)[2], dim(delta_samples)[3], 1)
+        dim(delta_samples) <- c(dim(delta_samples), 1)
         z0_samples <- as.matrix(z0_samples)
     }
 
-    stopifnot(order == 1)
     stopifnot(length(dim(delta_samples)) == 4)
     stopifnot(dim(delta_samples)[4] == nlevels(data_levels))
 
@@ -85,18 +90,20 @@ logistic_predicted_p <- function(delta_samples, z0_samples, design_matrix, data_
 #' @export
 logistic_moments <- function(
     distribution_samples, delta_samples, z0_samples,
-    design_matrix, condition_on_positive = FALSE, distributions = c('gamma', 'gamma'), data_levels = NULL, order = 1
+    design_matrix, condition_on_positive = FALSE, distributions = c('gamma', 'gamma'), data_levels = NULL,
+    order = 1
 ) {
-    stopifnot(identical(distributions, c('gamma', 'gamma')))
+    stopifnot(order < 0 || order > 1)
+    stopifnot(all(distributions == 'gamma'))
 
     if (is.null(data_levels)) {
         data_levels <- as.factor(rep('dummy', nrow(design_matrix)))
-        dim(delta_samples) <- c(dim(delta_samples)[1], dim(delta_samples)[2], 1, dim(delta_samples)[3])
+        dim(delta_samples) <- c(dim(delta_samples)[1 : 3], 1)
         z0_samples <- as.matrix(z0_samples)
     }
 
     stopifnot(length(dim(delta_samples)) == 4)
-    stopifnot(dim(delta_samples)[3] == nlevels(data_levels))
+    stopifnot(dim(delta_samples)[4] == nlevels(data_levels))
 
     stopifnot(length(dim(z0_samples)) == 2)
     stopifnot(ncol(z0_samples) == nlevels(data_levels))
