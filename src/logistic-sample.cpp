@@ -1,7 +1,10 @@
 #include <chrono>
 #include <RcppArmadillo.h>
 #include <vector>
+
+#if defined(_OPENMP)
 #include <omp.h>
+#endif
 
 #include "hypercube4.hpp"
 #include "logistic-sampler.hpp"
@@ -41,9 +44,11 @@ List logisticSample(
 ) {
     RNG::initialise();
 
-    if (numThreads > 0) {
-        omp_set_num_threads(numThreads);
-    }
+    #if defined(_OPENMP)
+        if (numThreads > 0) {
+            omp_set_num_threads(numThreads);
+        }
+    #endif
 
     LogisticSampler sampler(
         panelY, panelDesignMatrix, order,

@@ -1,4 +1,4 @@
-#ifndef SRC_RNG_HPP_
+    #ifndef SRC_RNG_HPP_
 #define SRC_RNG_HPP_
 
 #include <RcppArmadillo.h>
@@ -52,10 +52,10 @@ class RNG {
     std::exponential_distribution<double> exponentialDistribution_;  // exp(1)
 };
 
-#if defined(__clang__)
-extern RNG rng;
+#if defined(_OPENMP)
+    extern thread_local RNG rng;
 #else
-extern thread_local RNG rng;
+    extern RNG rng;
 #endif
 
 }  // namespace ptsm
