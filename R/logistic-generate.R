@@ -81,6 +81,9 @@ logistic_generate <- function(
     if (length(output$delta) == 1) {
         output$delta <- delta[[1]]
     }
+    output$distributions <- distributions
+    output$component_parameters <- component_parameters
+    output$order <- order
 
     return(output)
 }
