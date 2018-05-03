@@ -224,7 +224,7 @@ logistic_sample <- function(
 
     futile.logger::flog.debug('Running sampler', name = 'ptsm.logistic_sample')
     if (!use_checkpoints) {
-        final_results <- .logistic_sample(
+        final_results <- .logistic_run_sampler(
             n_samples, burn_in,
             configuration,
             current_checkpoint$starting_values

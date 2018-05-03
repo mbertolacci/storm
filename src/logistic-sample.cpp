@@ -112,7 +112,7 @@ List logisticSampleY(
 
     ProgressBar progressBar(nSamples);
     for (unsigned int sampleIndex = 0; sampleIndex < nSamples; ++sampleIndex) {
-        #pragma omp parallel for
+        #pragma omp parallel for if (nLevels > 1)
         for (unsigned int level = 0; level < nLevels; ++level) {
             mat delta = panelDeltaSample[level].slice(sampleIndex);
             unsigned int previousZ = panelZ0Sample(sampleIndex, level);

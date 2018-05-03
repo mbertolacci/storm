@@ -161,12 +161,12 @@ LogisticSampler::LogisticSampler(
 void LogisticSampler::start() {}
 
 void LogisticSampler::next() {
-    #pragma omp parallel for
+    #pragma omp parallel for if (nDataLevels_ > 1)
     for (unsigned int level = 0; level < nDataLevels_; ++level) {
         sampleLevel_(level);
     }
 
-    #pragma omp parallel for
+    #pragma omp parallel for if (nDataLevels_ > 1)
     for (unsigned int level = nDataLevels_; level < nLevels_; ++level) {
         sampleMissingLevel_(level);
     }
