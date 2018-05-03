@@ -10,6 +10,12 @@
         return(FALSE)
     }
 
+    if (prior$logistic$type == 'normal') {
+        return(
+            all.equal(dim(prior$logistic$mean), c(n_components, n_deltas, n_level_vars)) &&
+            all.equal(dim(prior$logistic$variance), c(n_components, n_deltas, n_level_vars))
+        )
+    }
     return(
         all.equal(dim(prior$logistic$mean$mean), c(n_components, n_deltas, n_level_vars)) &&
         all.equal(dim(prior$logistic$mean$variance), c(n_components, n_deltas, n_level_vars)) &&
@@ -110,13 +116,29 @@
     }
 
     if (is.null(prior$logistic$mean)) {
-        prior$logistic$mean <- list(
-            mean = array(0, dim = c(n_components, n_deltas, n_level_vars)),
-            variance = array(100, dim = c(n_components, n_deltas, n_level_vars))
-        )
+        if (prior$logistic$type != 'normal') {
+            prior$logistic$mean <- list(
+                mean = array(0, dim = c(n_components, n_deltas, n_level_vars)),
+                variance = array(100, dim = c(n_components, n_deltas, n_level_vars))
+            )
+        } else {
+            prior$logistic$mean <- array(0, dim = c(n_components, n_deltas, n_level_vars))
+            prior$logistic$variance = array(100, dim = c(n_components, n_deltas, n_level_vars))
+        }
+    } else {
+        if (length(dim(prior$logistic$mean)) == 2) {
+            stopifnot(n_level_vars == 1)
+            expand_to_array3 <- function(x) {
+                x <- as.array(x)
+                dim(x) <- c(dim(x), 1)
+                x
+            }
+            prior$logistic$mean <- expand_to_array3(prior$logistic$mean)
+            prior$logistic$variance <- expand_to_array3(prior$logistic$variance)
+        }
     }
 
-    if (is.null(prior$logistic$variance)) {
+    if (prior$logistic$type != 'normal' && is.null(prior$logistic$variance)) {
         prior$logistic$variance <- list(
             alpha = matrix(1.1, nrow = n_components, ncol = n_deltas),
             beta = matrix(0.5, nrow = n_components, ncol = n_deltas)
@@ -417,8 +439,8 @@ logistic_sample <- function(
             starting_values$delta_family_variance <- matrix(1, nrow = n_components, ncol = n_deltas)
         }
     } else {
-        starting_values$delta_family_mean <- prior$logistic$mean$mean
-        starting_values$delta_family_variance <- prior$logistic$mean$variance[, , 1]
+        starting_values$delta_family_mean <- prior$logistic$mean
+        starting_values$delta_family_variance <- prior$logistic$variance[, , 1]
     }
 
     if (is.null(thinning)) {
