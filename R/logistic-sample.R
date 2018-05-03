@@ -628,19 +628,19 @@ logistic_sample_y <- function(sampler_results, progress = FALSE) {
 
     futile.logger::flog.trace('Joining y samples', name = 'ptsm.logistic_sample_y')
     output <- list()
-    output$y_sample <- .levels_from_list(inner_results$panel_y_sample, data_levels, 1)
+    output$y <- .levels_from_list(inner_results$panel_y_sample, data_levels, 1)
     inner_results$panel_y_sample <- NULL
-    output$y_sample <- coda::mcmc(
-        output$y_sample,
+    output$y <- coda::mcmc(
+        output$y,
         start = start(sampler_results$sample$delta),
         thin = thin(sampler_results$sample$delta)
     )
 
     futile.logger::flog.trace('Joining z samples', name = 'ptsm.logistic_sample_y')
-    output$y_sample_z <- .levels_from_list(inner_results$panel_y_sample_z, data_levels, 1)
+    output$z <- .levels_from_list(inner_results$panel_y_sample_z, data_levels, 1)
     inner_results$panel_y_sample_z <- NULL
-    output$y_sample_z <- coda::mcmc(
-        output$y_sample_z,
+    output$z <- coda::mcmc(
+        output$z,
         start = start(sampler_results$sample$delta),
         thin = thin(sampler_results$sample$delta)
     )
