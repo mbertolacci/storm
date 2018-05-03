@@ -60,7 +60,7 @@ independent_sample <- function(
     }
     if (!is.null(results$sample[['p']])) {
         results$sample$p <- coda::mcmc(results$sample$p, start = 1, thin = thinning$p)
-        colnames(results$sample$p) <- paste0('p', 1 : (n_components + 1))
+        colnames(results$sample$p) <- sprintf('p[%d]', 1 : (n_components + 1))
     }
     if (!is.null(results$sample[['z']])) {
         results$sample[['z']] <- coda::mcmc(results$sample[['z']], start = 1, thin = thinning$z)
@@ -73,5 +73,64 @@ independent_sample <- function(
         )
     }
 
-    return (results)
+    results$distributions <- distributions
+    results$prior <- prior
+    results$sampling_scheme <- sampling_scheme
+
+    class(results) <- 'ptsm_independent_mcmc'
+
+    return(results)
+}
+
+#' @export
+independent_sample_y <- function(results, n_y) {
+    n_components <- ncol(results$sample$p) - 1
+    n_iterations <- nrow(results$sample$p)
+    z_sample <- matrix(0, nrow = n_iterations, ncol = n_y)
+    y_sample <- matrix(0, nrow = n_iterations, ncol = n_y)
+    for (iteration in 1 : n_iterations) {
+        z_sample[iteration, ] <- sample.int(
+            n_components + 1,
+            n_y,
+            replace = TRUE,
+            prob = results$sample$p[iteration, ]
+        )
+        y_sample[iteration, ] <- .y_given_z(
+            z_sample[iteration, ],
+            results$distributions,
+            lapply(results$sample$distribution, function(x) x[iteration, ])
+        )
+    }
+
+    list(
+        z = if (n_y == 1) as.vector(z_sample) else z_sample,
+        y = if (n_y == 1) as.vector(y_sample) else y_sample
+    )
+}
+
+#' @export
+summary.ptsm_independent_mcmc <- function(x) {
+    structure(list(
+        distribution = lapply(x$sample$distribution, summary),
+        p = summary(x$sample$p)
+    ), class = 'summary.ptsm_independent_mcmc')
+}
+
+#' @export
+print.summary.ptsm_independent_mcmc <- function(x) {
+    for (i in 1 : length(x[['distribution']])) {
+        cat('--- Component', i, 'parameters\n')
+        print(x[['distribution']][[i]])
+    }
+    cat('--- p (mixture weights)\n')
+    print(x[['p']])
+}
+
+#' @export
+window.ptsm_independent_mcmc <- function(x, ...) {
+    for (k in 1 : length(x[['sample']][['distribution']])) {
+        x[['sample']][['distribution']][[k]] <- window(x[['sample']][['distribution']][[k]], ...)
+    }
+    x[['sample']][['p']] <- window(x[['sample']][['p']], ...)
+    return(x)
 }
