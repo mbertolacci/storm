@@ -1,5 +1,5 @@
 #' @export
-ptsm_logistic_ergodic_p <- function(
+logistic_ergodic_p <- function(
     delta_samples, z_samples, z_levels, z0_samples, design_matrix, panel_variable, order = 1
 ) {
     p_hat <- data.frame(
@@ -26,7 +26,7 @@ ptsm_logistic_ergodic_p <- function(
         level_z_samples <- z_samples[, z_levels == level]
         level_z0_samples <- z0_samples[, level_index]
 
-        p_hat[level_indices, c('p1', 'p2', 'p3')] <- .ptsm_logistic_ergodic_p(
+        p_hat[level_indices, c('p1', 'p2', 'p3')] <- .logistic_ergodic_p(
             level_delta_samples, level_z_samples, level_z0_samples, level_design_matrix, order
         )
     }
@@ -51,7 +51,7 @@ ptsm_logistic_ergodic_p <- function(
 }
 
 #' @export
-ptsm_logistic_predicted_p <- function(delta_samples, z0_samples, design_matrix, data_levels = NULL, order = 1) {
+logistic_predicted_p <- function(delta_samples, z0_samples, design_matrix, data_levels = NULL, order = 1) {
     if (is.null(data_levels)) {
         data_levels <- as.factor(rep('dummy', nrow(design_matrix)))
         dim(delta_samples) <- c(dim(delta_samples)[1], dim(delta_samples)[2], dim(delta_samples)[3], 1)
@@ -83,7 +83,7 @@ ptsm_logistic_predicted_p <- function(delta_samples, z0_samples, design_matrix, 
 }
 
 #' @export
-ptsm_logistic_moments <- function(
+logistic_moments <- function(
     distribution_samples, delta_samples, z0_samples,
     design_matrix, condition_on_positive = FALSE, distributions = c('gamma', 'gamma'), data_levels = NULL, order = 1
 ) {
@@ -116,7 +116,7 @@ ptsm_logistic_moments <- function(
 
 #' Calculate mean and quantiles of fitted delta values
 #' @export
-ptsm_logistic_fitted_delta <- function(sampler_results, probs = c(0.025, 0.1, 0.5, 0.9, 0.975)) {
+logistic_fitted_delta <- function(sampler_results, probs = c(0.025, 0.1, 0.5, 0.9, 0.975)) {
     stopifnot(length(dim(sampler_results$sample$delta_family_mean)) == 4)
 
     delta_mean_sample <- aperm(sampler_results$sample$delta_family_mean, c(1, 4, 3, 2))

@@ -1,9 +1,9 @@
-context('ptsm_hmm_sample')
+context('hmm_sample')
 
 get_sample <- function(theta_sample_thinning = 0, z_sample_thinning = 0, y_missing_sample_thinning = 0) {
     distributions <- c('gamma', 'gamma')
 
-    data <- ptsm_hmm_generate(
+    data <- hmm_generate(
         1000,
         matrix(
             c(
@@ -18,7 +18,7 @@ get_sample <- function(theta_sample_thinning = 0, z_sample_thinning = 0, y_missi
         list(c(2, 1), c(0.5, 15))
     )
 
-    ptsm_hmm_sample(
+    hmm_sample(
         n_samples = 200, burn_in = 100,
         y = c(data$y, rep(NA, 10)),
         distributions = distributions,

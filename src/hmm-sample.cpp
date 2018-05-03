@@ -63,7 +63,7 @@ unsigned int sampleSingleZ2(const colvec &p) {
     return pNormalised.n_elem - 1;
 }
 
-// [[Rcpp::export(name=".ptsm_hmm_sample")]]
+// [[Rcpp::export(name=".hmm_sample")]]
 List hmmSample(
     unsigned int nSamples, unsigned int burnIn,
     NumericVector yR,

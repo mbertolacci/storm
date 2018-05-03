@@ -1,5 +1,5 @@
 #' @export
-ptsm_logistic_generate <- function(
+logistic_generate <- function(
     data, formula, distributions, component_parameters,
     order = 1,
     delta_family_mean = NULL, delta_family_variance = NULL, delta = NULL,
@@ -66,7 +66,7 @@ ptsm_logistic_generate <- function(
     output_z <- c()
     output_y <- c()
     for (level_index in 1 : n_levels) {
-        level_sample <- .ptsm_logistic_generate(
+        level_sample <- .logistic_generate(
             delta[[level_index]], panel_explanatory_variables[[level_index]],
             component_parameters, distributions, order
         )

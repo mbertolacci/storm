@@ -61,7 +61,7 @@ std::vector<ParameterBoundDistribution> getParameterBoundDistributions(
     return output;
 }
 
-// [[Rcpp::export(name=".ptsm_independent_sample")]]
+// [[Rcpp::export(name=".independent_sample")]]
 List independentSample(
     unsigned int nSamples, unsigned int burnIn,
     NumericVector yR,

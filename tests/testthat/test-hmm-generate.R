@@ -1,6 +1,6 @@
-context('ptsm_hmm_generate')
+context('hmm_generate')
 
-test_that('ptsm_hmm_generate', {
+test_that('hmm_generate', {
     P <- matrix(
         c(
             0.7, 0.2, 0.1,
@@ -12,7 +12,7 @@ test_that('ptsm_hmm_generate', {
     )
 
     n_samples <- 100
-    data <- ptsm_hmm_generate(
+    data <- hmm_generate(
         n_samples, P,
         c('gamma', 'gamma'),
         list(c(2, 1), c(0.5, 15)),

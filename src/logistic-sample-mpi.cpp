@@ -18,7 +18,7 @@ using ptsm::rng;
 
 const unsigned int CHECK_INTERRUPT_INTERVAL = 10;
 
-// [[Rcpp::export(name=".ptsm_logistic_sample_mpi")]]
+// [[Rcpp::export(name=".logistic_sample_mpi")]]
 List logisticSampleMPI(
     unsigned int nSamples, unsigned int burnIn,
     List panelY, List panelDesignMatrix, unsigned int order,
@@ -27,7 +27,8 @@ List logisticSampleMPI(
     List panelDeltaStart, NumericVector deltaFamilyMeanStart, NumericMatrix deltaFamilyVarianceStart,
     Rcpp::Nullable<NumericMatrix> deltaDesignMatrix,
     List thinning,
-    unsigned int verbose = 0, bool progress = false
+    unsigned int verbose = 0, bool progress = false,
+    int numThreads = 0
 ) {
     RNG::initialise();
 

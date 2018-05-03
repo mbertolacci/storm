@@ -13,7 +13,7 @@ rgammashapeconjugate <- function(n, beta, logP = NA_real_, q = NA_real_, r = NA_
     .Call('_positivemixtures_rGammaShapeConjugateR', PACKAGE = 'positivemixtures', n, beta, logP, q, r, x, prior)
 }
 
-.ptsm_gp_sample <- function(y, designMatrix, betaPriorMean, betaPriorVariance, variancePriorAlpha, variancePriorBeta, tauSquaredPriorAlpha, tauSquaredPriorBeta, nGPBases) {
+.gp_sample <- function(y, designMatrix, betaPriorMean, betaPriorVariance, variancePriorAlpha, variancePriorBeta, tauSquaredPriorAlpha, tauSquaredPriorBeta, nGPBases) {
     .Call('_positivemixtures_gpSample', PACKAGE = 'positivemixtures', y, designMatrix, betaPriorMean, betaPriorVariance, variancePriorAlpha, variancePriorBeta, tauSquaredPriorAlpha, tauSquaredPriorBeta, nGPBases)
 }
 
@@ -36,43 +36,43 @@ gevPwmEstimateConstrained <- function(x, supportLim) {
     .Call('_positivemixtures_gevPwmEstimateConstrained', PACKAGE = 'positivemixtures', x, supportLim)
 }
 
-.ptsm_hmm_sample <- function(nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, thetaStart, thetaSampleThinning = 1L, zSampleThinning = 0L, yMissingSampleThinning = 0L, verbose = 0L) {
+.hmm_sample <- function(nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, thetaStart, thetaSampleThinning = 1L, zSampleThinning = 0L, yMissingSampleThinning = 0L, verbose = 0L) {
     .Call('_positivemixtures_hmmSample', PACKAGE = 'positivemixtures', nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, thetaStart, thetaSampleThinning, zSampleThinning, yMissingSampleThinning, verbose)
 }
 
-.ptsm_independent_sample <- function(nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, distributionsStart, distributionSampleThinning = 1L, pSampleThinning = 1L, zSampleThinning = 0L, yMissingSampleThinning = 0L, progress = FALSE) {
+.independent_sample <- function(nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, distributionsStart, distributionSampleThinning = 1L, pSampleThinning = 1L, zSampleThinning = 0L, yMissingSampleThinning = 0L, progress = FALSE) {
     .Call('_positivemixtures_independentSample', PACKAGE = 'positivemixtures', nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, distributionsStart, distributionSampleThinning, pSampleThinning, zSampleThinning, yMissingSampleThinning, progress)
 }
 
-.ptsm_logistic_ergodic_p <- function(deltaSamplesR, zSamplesR, z0SamplesR, designMatrixR, order) {
+.logistic_ergodic_p <- function(deltaSamplesR, zSamplesR, z0SamplesR, designMatrixR, order) {
     .Call('_positivemixtures_logisticErgodicP', PACKAGE = 'positivemixtures', deltaSamplesR, zSamplesR, z0SamplesR, designMatrixR, order)
 }
 
-.ptsm_logistic_predicted_p <- function(levels, order) {
+.logistic_predicted_p <- function(levels, order) {
     .Call('_positivemixtures_logisticPredictedP', PACKAGE = 'positivemixtures', levels, order)
 }
 
-.ptsm_logistic_moments <- function(distributionSamplesR, levels, order, conditionOnPositive) {
+.logistic_moments <- function(distributionSamplesR, levels, order, conditionOnPositive) {
     .Call('_positivemixtures_logisticMoments', PACKAGE = 'positivemixtures', distributionSamplesR, levels, order, conditionOnPositive)
 }
 
-.ptsm_logistic_fitted_delta <- function(deltaFamilyMeanSamples, levelDesignMatrixR, probsR) {
+.logistic_fitted_delta <- function(deltaFamilyMeanSamples, levelDesignMatrixR, probsR) {
     .Call('_positivemixtures_logisticFittedDelta', PACKAGE = 'positivemixtures', deltaFamilyMeanSamples, levelDesignMatrixR, probsR)
 }
 
-.ptsm_logistic_generate <- function(deltaR, explanatoryVariablesR, distributionParameters, distributionNames, order) {
+.logistic_generate <- function(deltaR, explanatoryVariablesR, distributionParameters, distributionNames, order) {
     .Call('_positivemixtures_logisticGenerate', PACKAGE = 'positivemixtures', deltaR, explanatoryVariablesR, distributionParameters, distributionNames, order)
 }
 
-.ptsm_logistic_sample_mpi <- function(nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose = 0L, progress = FALSE) {
-    .Call('_positivemixtures_logisticSampleMPI', PACKAGE = 'positivemixtures', nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress)
+.logistic_sample_mpi <- function(nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose = 0L, progress = FALSE, numThreads = 0L) {
+    .Call('_positivemixtures_logisticSampleMPI', PACKAGE = 'positivemixtures', nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress, numThreads)
 }
 
-.ptsm_logistic_sample <- function(nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose = 0L, progress = FALSE, numThreads = 0L) {
+.logistic_sample <- function(nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose = 0L, progress = FALSE, numThreads = 0L) {
     .Call('_positivemixtures_logisticSample', PACKAGE = 'positivemixtures', nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress, numThreads)
 }
 
-.ptsm_logistic_sample_y <- function(panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames, order, progress = FALSE) {
+.logistic_sample_y <- function(panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames, order, progress = FALSE) {
     .Call('_positivemixtures_logisticSampleY', PACKAGE = 'positivemixtures', panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames, order, progress)
 }
 

@@ -27,7 +27,7 @@ using ptsm::RNG;
 
 const unsigned int CHECK_INTERRUPT_INTERVAL = 10;
 
-// [[Rcpp::export(name=".ptsm_logistic_sample")]]
+// [[Rcpp::export(name=".logistic_sample")]]
 List logisticSample(
     unsigned int nSamples, unsigned int burnIn,
     List panelY, List panelDesignMatrix, unsigned int order,
@@ -62,7 +62,7 @@ List logisticSample(
     ).asList();
 }
 
-// [[Rcpp::export(name=".ptsm_logistic_sample_y")]]
+// [[Rcpp::export(name=".logistic_sample_y")]]
 List logisticSampleY(
     List panelExplanatoryVariablesR, List panelDeltaSampleR, List panelZ0SampleR,
     List distributionSampleR,

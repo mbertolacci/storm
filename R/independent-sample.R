@@ -1,5 +1,5 @@
 #' @export
-ptsm_independent_sample <- function(
+independent_sample <- function(
     n_samples,
     y,
     distributions = c('gamma', 'gamma'), prior = NULL,
@@ -42,7 +42,7 @@ ptsm_independent_sample <- function(
         starting_values <- .mixture_initial_values(y, distributions, starting_values = starting_values)
     }
 
-    results <- .ptsm_independent_sample(
+    results <- .independent_sample(
         n_samples, burn_in, y,
         distributions, prior, sampling_scheme,
         starting_values$z, starting_values$distributions,

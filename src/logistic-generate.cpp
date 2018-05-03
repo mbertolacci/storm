@@ -92,7 +92,7 @@ LogisticSample generate(
     return sample;
 }
 
-// [[Rcpp::export(name=".ptsm_logistic_generate")]]
+// [[Rcpp::export(name=".logistic_generate")]]
 List logisticGenerate(
     NumericMatrix deltaR, NumericMatrix explanatoryVariablesR,
     List distributionParameters, StringVector distributionNames,

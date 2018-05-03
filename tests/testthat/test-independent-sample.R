@@ -1,4 +1,4 @@
-context('ptsm_independent_sample')
+context('independent_sample')
 
 get_sample <- function(
     distributions = c('gamma', 'gamma'),
@@ -7,14 +7,14 @@ get_sample <- function(
 ) {
     distributions <- c('gamma', 'gamma')
 
-    data <- ptsm_independent_generate(
+    data <- independent_generate(
         1000,
         c(0.5, 0.2, 0.3),
         distributions,
         parameters
     )
 
-    ptsm_independent_sample(
+    independent_sample(
         n_samples = 200, burn_in = 100,
         y = c(data$y, rep(NA, 10)),
         distributions = distributions,

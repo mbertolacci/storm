@@ -1,4 +1,4 @@
-context('ptsm_logistic_sample')
+context('logistic_sample')
 
 DEFAULT_DISTRIBUTIONS <- c('gamma', 'gamma')
 DEFAULT_SAMPLING_SCHEME <- list(
@@ -57,7 +57,7 @@ test_that('.get_logistic_sample_prior with gaussian process prior', {
     expect_equal(prior$logistic$n_gp_bases, 20)
 })
 
-test_that('ptsm_logistic_sample should reject panel data with mismatched levels', {
+test_that('logistic_sample should reject panel data with mismatched levels', {
     data <- data.frame(
         group = as.factor(1 : 10)
     )
@@ -68,7 +68,7 @@ test_that('ptsm_logistic_sample should reject panel data with mismatched levels'
         group = as.factor(as.character(1 : 10))
     )
     expect_error({
-        ptsm_logistic_sample(1, 1, data, ~ ., level_data = level_data, panel_variable = 'group')
+        logistic_sample(1, 1, data, ~ ., level_data = level_data, panel_variable = 'group')
     }, 'Levels in data and level_data must be equal')
 
     # Duplicated level in level_data
@@ -76,13 +76,13 @@ test_that('ptsm_logistic_sample should reject panel data with mismatched levels'
         group = as.factor(c(1 : 10, 10))
     )
     expect_error({
-        ptsm_logistic_sample(1, 1, data, ~ ., level_data = level_data, panel_variable = 'group')
+        logistic_sample(1, 1, data, ~ ., level_data = level_data, panel_variable = 'group')
     }, 'Number of rows in level_data should equal number of levels')
 
     # NOTE: The success case is implicitly handled in other tests
 })
 
-test_that('ptsm_logistic_sample on non-panel data', {
+test_that('logistic_sample on non-panel data', {
     input_data <- data.frame(t = seq(0, 1, length.out = 100))
 
     formula <- ~ t + I(t ^ 2)
@@ -94,7 +94,7 @@ test_that('ptsm_logistic_sample on non-panel data', {
         c(-1, -1, -1, -1, -1)
     )
 
-    generated <- ptsm_logistic_generate(
+    generated <- logistic_generate(
         input_data, formula, distributions, component_parameters,
         delta = delta
     )
@@ -103,7 +103,7 @@ test_that('ptsm_logistic_sample on non-panel data', {
 
     n_samples <- 20
 
-    output <- ptsm_logistic_sample(
+    output <- logistic_sample(
         n_samples, 5,
         data, y ~ t + I(t ^ 2), distributions
     )
@@ -126,7 +126,7 @@ test_that('ptsm_logistic_sample on non-panel data', {
 #     n_deltas <- 5
 
 #     # Generate deltas from family parameters
-#     generated <- ptsm_logistic_generate(
+#     generated <- logistic_generate(
 #         input_data, formula, distributions, component_parameters,
 #         delta_family_mean=matrix(0, nrow=2, ncol=n_deltas),
 #         delta_family_variance=matrix(1, nrow=2, ncol=n_deltas),
@@ -136,7 +136,7 @@ test_that('ptsm_logistic_sample on non-panel data', {
 #     data <- input_data
 #     data$y <- generated$data$y
 
-#     ptsm_logistic_sample(
+#     logistic_sample(
 #         n_samples=n_samples, burn_in=5,
 #         data, y ~ t + I(t ^ 2), distributions,
 #         theta_sample_thinning=1, z_sample_thinning=1, y_missing_sample_thinning=0,
@@ -145,7 +145,7 @@ test_that('ptsm_logistic_sample on non-panel data', {
 #     )
 # }
 
-# test_that('ptsm_logistic_sample on panel data', {
+# test_that('logistic_sample on panel data', {
 #     n_levels <- 2
 #     n_per_level <- 100
 #     n_samples <- 20
@@ -174,13 +174,13 @@ test_that('ptsm_logistic_sample on non-panel data', {
 #     expect_equal(ncol(output$z_sample), n_levels * n_per_level)
 # })
 
-# test_that('ptsm_logistic_sample_y', {
+# test_that('logistic_sample_y', {
 #     n_levels <- 2
 #     n_per_level <- 100
 #     n_samples <- 10
 
 #     output <- get_sample(n_levels, n_per_level, n_samples)
-#     y_sample_output <- ptsm_logistic_sample_y(output)
+#     y_sample_output <- logistic_sample_y(output)
 
 #     expect_equal(nrow(y_sample_output$y_sample), n_samples)
 #     expect_equal(nrow(y_sample_output$y_sample_z), n_samples)

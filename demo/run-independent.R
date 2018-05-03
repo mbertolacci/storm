@@ -4,7 +4,7 @@ cat('\n--------- Gamma / Gamma\n')
 
 n <- 5000
 distributions <- c('gamma', 'gamma')
-data <- ptsm_independent_generate(
+data <- independent_generate(
     n,
     c(0.5, 0.2, 0.3),
     distributions,
@@ -24,7 +24,7 @@ sampling_scheme <- list(
     # )
 )
 
-results <- ptsm_independent_sample(
+results <- independent_sample(
     n_samples = 10000, burn_in = 1000,
     y = data$y,
     distributions = distributions,
@@ -48,14 +48,14 @@ cat('\n--------- Gengamma / Gengamma\n')
 
 n <- 5000
 distributions <- c('gengamma', 'gengamma')
-data <- ptsm_independent_generate(
+data <- independent_generate(
     n,
     c(0.5, 0.2, 0.3),
     distributions,
     list(c(0.2, 0.7, 0.1), c(1.3, 1.5, 0.03))
 )
 
-sample <- ptsm_independent_sample(
+sample <- independent_sample(
     n_samples=5000, burn_in=1000,
     y=c(data$y, rep(NA, 100)),
     distributions=distributions,
@@ -69,14 +69,14 @@ cat('\n--------- Gamma / GEV\n')
 
 n <- 5000
 distributions <- c('gamma', 'gev')
-data <- ptsm_independent_generate(
+data <- independent_generate(
     n,
     c(0.5, 0.2, 0.3),
     distributions,
     list(c(2, 0.7), c(5, 0.6, 0.5))
 )
 
-sample <- ptsm_independent_sample(
+sample <- independent_sample(
     n_samples=5000, burn_in=1000,
     y=c(data$y, rep(NA, 100)),
     distributions=distributions,

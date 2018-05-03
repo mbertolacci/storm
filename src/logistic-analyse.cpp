@@ -19,7 +19,7 @@ using Rcpp::NumericVector;
 using Rcpp::stop;
 using Rcpp::wrap;
 
-// [[Rcpp::export(name=".ptsm_logistic_ergodic_p")]]
+// [[Rcpp::export(name=".logistic_ergodic_p")]]
 NumericMatrix logisticErgodicP(
     NumericMatrix deltaSamplesR, NumericMatrix zSamplesR, IntegerVector z0SamplesR,
     NumericMatrix designMatrixR, unsigned int order
@@ -142,7 +142,7 @@ mat logisticPredictedPLevel(
     return pHat / static_cast<double>(deltaSamples.n_slices);
 }
 
-// [[Rcpp::export(name=".ptsm_logistic_predicted_p")]]
+// [[Rcpp::export(name=".logistic_predicted_p")]]
 List logisticPredictedP(
     List levels, unsigned int order
 ) {
@@ -214,7 +214,7 @@ mat logisticMomentsLevel(
     return moments / static_cast<double>(deltaSamples.n_slices);
 }
 
-// [[Rcpp::export(name=".ptsm_logistic_moments")]]
+// [[Rcpp::export(name=".logistic_moments")]]
 List logisticMoments(List distributionSamplesR, List levels, unsigned int order, bool conditionOnPositive) {
     field<mat> distributionSamples = fieldFromList<mat>(distributionSamplesR);
     field<cube> panelDelta(levels.length());
@@ -242,7 +242,7 @@ List logisticMoments(List distributionSamplesR, List levels, unsigned int order,
     return listFromField(results);
 }
 
-// [[Rcpp::export(name=".ptsm_logistic_fitted_delta")]]
+// [[Rcpp::export(name=".logistic_fitted_delta")]]
 NumericVector logisticFittedDelta(
     NumericVector deltaFamilyMeanSamples,
     NumericMatrix levelDesignMatrixR,

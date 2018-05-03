@@ -1,6 +1,6 @@
-context('ptsm_logistic_generate')
+context('logistic_generate')
 
-test_that('ptsm_logistic_generate generates non-panel data', {
+test_that('logistic_generate generates non-panel data', {
     input_data <- data.frame(t = seq(0, 1, length.out = 100))
 
     formula <- ~ t + I(t ^ 2)
@@ -11,7 +11,7 @@ test_that('ptsm_logistic_generate generates non-panel data', {
         c(-1, -1, -1, -1, -1)
     )
 
-    output <- ptsm_logistic_generate(
+    output <- logistic_generate(
         input_data, formula, distributions, component_parameters,
         delta = delta
     )
@@ -20,7 +20,7 @@ test_that('ptsm_logistic_generate generates non-panel data', {
     expect_equal(output$delta, delta)
 })
 
-test_that('ptsm_logistic_generate can generate panel data', {
+test_that('logistic_generate can generate panel data', {
     n_per_level <- 100
     n_levels <- 5
     input_data <- data.frame(
@@ -33,7 +33,7 @@ test_that('ptsm_logistic_generate can generate panel data', {
     component_parameters <- list(c(1.5, 1), c(1.18, 10))
 
     # Generate deltas from family parameters
-    output <- ptsm_logistic_generate(
+    output <- logistic_generate(
         input_data, formula, distributions, component_parameters,
         delta_family_mean = matrix(0, nrow = 2, ncol = 5),
         delta_family_variance = matrix(1, nrow = 2, ncol = 5),
@@ -51,35 +51,35 @@ test_that('ptsm_logistic_generate can generate panel data', {
         matrix(4, nrow = 2, ncol = 5),
         matrix(5, nrow = 2, ncol = 5)
     )
-    output <- ptsm_logistic_generate(
+    output <- logistic_generate(
         input_data, formula, distributions, component_parameters,
         delta = deltas, panel_variable = 'group'
     )
     expect_equal(output$delta, deltas)
 })
 
-test_that('ptsm_logistic_generate can generate various orders', {
+test_that('logistic_generate can generate various orders', {
     input_data <- data.frame(t = seq(0, 1, length.out = 100))
 
     formula <- ~ t + I(t ^ 2)
     distributions <- c('gamma', 'gamma')
     component_parameters <- list(c(1.5, 1), c(1.18, 10))
 
-    output <- ptsm_logistic_generate(
+    output <- logistic_generate(
         input_data, formula, distributions, component_parameters,
         delta = matrix(0.5, nrow = 2, ncol = 3),
         order = 0
     )
     expect_equal(nrow(output$data), 100)
 
-    output <- ptsm_logistic_generate(
+    output <- logistic_generate(
         input_data, formula, distributions, component_parameters,
         delta = matrix(0.5, nrow = 2, ncol = 5),
         order = 1
     )
     expect_equal(nrow(output$data), 100)
 
-    output <- ptsm_logistic_generate(
+    output <- logistic_generate(
         input_data, formula, distributions, component_parameters,
         delta = matrix(0.5, nrow = 2, ncol = 7),
         order = 2
@@ -87,7 +87,7 @@ test_that('ptsm_logistic_generate can generate various orders', {
     expect_equal(nrow(output$data), 100)
 
     expect_error(
-        ptsm_logistic_generate(
+        logistic_generate(
             input_data, formula, distributions, component_parameters,
             delta = matrix(0.5, nrow = 2, ncol = 3),
             order = -1

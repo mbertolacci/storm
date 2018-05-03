@@ -166,7 +166,7 @@
 }
 
 #' @export
-ptsm_logistic_sample <- function(
+logistic_sample <- function(
     n_samples, burn_in,
     data, formula,
     distributions = c('gamma', 'gamma'), prior = NULL, sampling_scheme = NULL,
@@ -244,7 +244,7 @@ ptsm_logistic_sample <- function(
                 name = 'ptsm.logistic_sample'
             )
 
-            results <- .logistic_sample(
+            results <- .logistic_run_sampler(
                 this_n_samples, this_burn_in,
                 configuration,
                 current_checkpoint$starting_values
@@ -458,11 +458,11 @@ ptsm_logistic_sample <- function(
     ))
 }
 
-.logistic_sample <- function(n_samples, burn_in, configuration, starting_values) {
+.logistic_run_sampler <- function(n_samples, burn_in, configuration, starting_values) {
     if (configuration$mpi) {
-        sample_function <- .ptsm_logistic_sample_mpi
+        sample_function <- .logistic_sample_mpi
     } else {
-        sample_function <- .ptsm_logistic_sample
+        sample_function <- .logistic_sample
     }
 
     return(do.call(
@@ -592,7 +592,7 @@ ptsm_logistic_sample <- function(
 }
 
 #' @export
-ptsm_logistic_sample_y <- function(sampler_results, progress = FALSE) {
+logistic_sample_y <- function(sampler_results, progress = FALSE) {
     if (is.null(sampler_results$panel_variable)) {
         data_levels <- factor(rep('dummy', nrow(sampler_results$data)))
         original_dim <- dim(sampler_results$sample$delta)
@@ -616,7 +616,7 @@ ptsm_logistic_sample_y <- function(sampler_results, progress = FALSE) {
     })
 
     futile.logger::flog.trace('Sampling values', name = 'ptsm.logistic_sample_y')
-    inner_results <- .ptsm_logistic_sample_y(
+    inner_results <- .logistic_sample_y(
         panel_design_matrix,
         panel_delta_sample,
         panel_z0_sample,

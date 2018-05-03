@@ -232,8 +232,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // logisticSampleMPI
-List logisticSampleMPI(unsigned int nSamples, unsigned int burnIn, List panelY, List panelDesignMatrix, unsigned int order, StringVector distributionNames, List priors, List samplingSchemes, List thetaStart, List panelDeltaStart, NumericVector deltaFamilyMeanStart, NumericMatrix deltaFamilyVarianceStart, Rcpp::Nullable<NumericMatrix> deltaDesignMatrix, List thinning, unsigned int verbose, bool progress);
-RcppExport SEXP _positivemixtures_logisticSampleMPI(SEXP nSamplesSEXP, SEXP burnInSEXP, SEXP panelYSEXP, SEXP panelDesignMatrixSEXP, SEXP orderSEXP, SEXP distributionNamesSEXP, SEXP priorsSEXP, SEXP samplingSchemesSEXP, SEXP thetaStartSEXP, SEXP panelDeltaStartSEXP, SEXP deltaFamilyMeanStartSEXP, SEXP deltaFamilyVarianceStartSEXP, SEXP deltaDesignMatrixSEXP, SEXP thinningSEXP, SEXP verboseSEXP, SEXP progressSEXP) {
+List logisticSampleMPI(unsigned int nSamples, unsigned int burnIn, List panelY, List panelDesignMatrix, unsigned int order, StringVector distributionNames, List priors, List samplingSchemes, List thetaStart, List panelDeltaStart, NumericVector deltaFamilyMeanStart, NumericMatrix deltaFamilyVarianceStart, Rcpp::Nullable<NumericMatrix> deltaDesignMatrix, List thinning, unsigned int verbose, bool progress, int numThreads);
+RcppExport SEXP _positivemixtures_logisticSampleMPI(SEXP nSamplesSEXP, SEXP burnInSEXP, SEXP panelYSEXP, SEXP panelDesignMatrixSEXP, SEXP orderSEXP, SEXP distributionNamesSEXP, SEXP priorsSEXP, SEXP samplingSchemesSEXP, SEXP thetaStartSEXP, SEXP panelDeltaStartSEXP, SEXP deltaFamilyMeanStartSEXP, SEXP deltaFamilyVarianceStartSEXP, SEXP deltaDesignMatrixSEXP, SEXP thinningSEXP, SEXP verboseSEXP, SEXP progressSEXP, SEXP numThreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -253,7 +253,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< List >::type thinning(thinningSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< bool >::type progress(progressSEXP);
-    rcpp_result_gen = Rcpp::wrap(logisticSampleMPI(nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress));
+    Rcpp::traits::input_parameter< int >::type numThreads(numThreadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(logisticSampleMPI(nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress, numThreads));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -465,7 +466,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_positivemixtures_logisticMoments", (DL_FUNC) &_positivemixtures_logisticMoments, 4},
     {"_positivemixtures_logisticFittedDelta", (DL_FUNC) &_positivemixtures_logisticFittedDelta, 3},
     {"_positivemixtures_logisticGenerate", (DL_FUNC) &_positivemixtures_logisticGenerate, 5},
-    {"_positivemixtures_logisticSampleMPI", (DL_FUNC) &_positivemixtures_logisticSampleMPI, 16},
+    {"_positivemixtures_logisticSampleMPI", (DL_FUNC) &_positivemixtures_logisticSampleMPI, 17},
     {"_positivemixtures_logisticSample", (DL_FUNC) &_positivemixtures_logisticSample, 17},
     {"_positivemixtures_logisticSampleY", (DL_FUNC) &_positivemixtures_logisticSampleY, 7},
     {"_positivemixtures_benchmarkLogistic", (DL_FUNC) &_positivemixtures_benchmarkLogistic, 3},

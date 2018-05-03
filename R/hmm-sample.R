@@ -1,5 +1,5 @@
 #' @export
-ptsm_hmm_sample <- function(
+hmm_sample <- function(
     n_samples, burn_in, y,
     distributions = c('gamma', 'gamma'), prior = NULL, sampling_scheme = NULL,
     theta_sample_thinning = 1, z_sample_thinning = 0, y_missing_sample_thinning = 0,
@@ -22,7 +22,7 @@ ptsm_hmm_sample <- function(
         print(starting_values$theta_start)
     }
 
-    results <- .ptsm_hmm_sample(
+    results <- .hmm_sample(
         n_samples, burn_in, y,
         distributions, prior, sampling_scheme,
         starting_values$z, starting_values$distributions,

@@ -133,7 +133,7 @@ void GPSampler::sampleTauSquared() {
 }
 
 
-// [[Rcpp::export(name=".ptsm_gp_sample")]]
+// [[Rcpp::export(name=".gp_sample")]]
 List gpSample(
     NumericVector y,
     NumericMatrix designMatrix,

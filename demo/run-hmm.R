@@ -15,13 +15,13 @@ P <- matrix(
 )
 
 distributions <- c('gamma', 'gamma')
-data <- ptsm_hmm_generate(
+data <- hmm_generate(
     n, P,
     distributions,
     list(c(2, 1), c(0.5, 15))
 )
 
-sample <- ptsm_hmm_sample(
+sample <- hmm_sample(
     n_samples=10000, burn_in=2000,
     y=c(data$y, rep(NA, 100)),
     distributions=distributions,
@@ -35,14 +35,14 @@ print(colMeans(sample$theta_sample))
 
 # n <- 5000
 # distributions <- c('gengamma', 'gengamma')
-# data <- ptsm_hmm_generate(
+# data <- hmm_generate(
 #     n,
 #     P,
 #     distributions,
 #     list(c(0.2, 0.7, 0.1), c(1.3, 1.5, 0.03))
 # )
 
-# sample <- ptsm_hmm_sample(
+# sample <- hmm_sample(
 #     n_samples=5000, burn_in=1000,
 #     y=c(data$y, rep(NA, 100)),
 #     distributions=distributions,
@@ -56,14 +56,14 @@ print(colMeans(sample$theta_sample))
 
 # n <- 5000
 # distributions <- c('gamma', 'gev')
-# data <- ptsm_hmm_generate(
+# data <- hmm_generate(
 #     n,
 #     P,
 #     distributions,
 #     list(c(2, 0.7), c(5, 0.6, 0.5))
 # )
 
-# sample <- ptsm_hmm_sample(
+# sample <- hmm_sample(
 #     n_samples=5000, burn_in=1000,
 #     y=c(data$y, rep(NA, 100)),
 #     distributions=distributions,

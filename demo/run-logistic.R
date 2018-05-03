@@ -6,7 +6,7 @@ devtools::load_all('positivemixtures')
 # distributions <- c('gamma', 'gamma')
 # input_data <- data.frame(t=seq(0, 1, length.out=2500))
 
-# output <- ptsm_logistic_generate(
+# output <- logistic_generate(
 #     input_data,
 #     ~ t, order=0,
 #     distributions,
@@ -20,7 +20,7 @@ devtools::load_all('positivemixtures')
 # data <- input_data
 # data$y <- output$data$y
 
-# results <- ptsm_logistic_sample(
+# results <- logistic_sample(
 #     n_samples=1000, burn_in=1000,
 #     data, y ~ t, order=0,
 #     distributions=distributions,
@@ -37,7 +37,7 @@ set.seed(100)
 # distributions <- c('gamma', 'gamma')
 # input_data <- data.frame(t=seq(0, 1, length.out=1000))
 
-# output <- ptsm_logistic_generate(
+# output <- logistic_generate(
 #     input_data,
 #     ~ t, order=1,
 #     distributions,
@@ -51,7 +51,7 @@ set.seed(100)
 # data <- input_data
 # data$y <- output$data$y
 
-# results <- ptsm_logistic_sample(
+# results <- logistic_sample(
 #     n_samples=1000, burn_in=1000,
 #     data, y ~ t, order=1,
 #     distributions=distributions,
@@ -71,7 +71,7 @@ input_data <- data.frame(
     group=factor(sapply(1 : n_levels, rep, n_per_level))
 )
 
-output <- ptsm_logistic_generate(
+output <- logistic_generate(
     input_data,
     ~ t,
     distributions,
@@ -84,7 +84,7 @@ output <- ptsm_logistic_generate(
 data <- input_data
 data$y <- output$data$y
 
-results <- ptsm_logistic_sample(
+results <- logistic_sample(
     n_samples=10000, burn_in=1000,
     data, y ~ t,
     distributions=distributions,
@@ -107,14 +107,14 @@ print(apply(results$sample$delta_family_mean, 2 : 4, mean))
 
 # n <- 5000
 # distributions <- c('gengamma', 'gengamma')
-# data <- ptsm_independent_generate(
+# data <- independent_generate(
 #     n,
 #     c(0.5, 0.2, 0.3),
 #     distributions,
 #     list(c(0.2, 0.7, 0.1), c(1.3, 1.5, 0.03))
 # )
 
-# sample <- ptsm_independent_sample(
+# sample <- independent_sample(
 #     n_samples=5000, burn_in=1000,
 #     y=c(data$y, rep(NA, 100)),
 #     distributions=distributions,
@@ -128,14 +128,14 @@ print(apply(results$sample$delta_family_mean, 2 : 4, mean))
 
 # n <- 5000
 # distributions <- c('gamma', 'gev')
-# data <- ptsm_independent_generate(
+# data <- independent_generate(
 #     n,
 #     c(0.5, 0.2, 0.3),
 #     distributions,
 #     list(c(2, 0.7), c(5, 0.6, 0.5))
 # )
 
-# sample <- ptsm_independent_sample(
+# sample <- independent_sample(
 #     n_samples=5000, burn_in=1000,
 #     y=c(data$y, rep(NA, 100)),
 #     distributions=distributions,

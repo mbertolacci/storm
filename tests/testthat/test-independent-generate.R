@@ -1,7 +1,7 @@
-context('ptsm_independent_generate')
+context('independent_generate')
 
-test_that('ptsm_independent_generate', {
-    data <- ptsm_independent_generate(
+test_that('independent_generate', {
+    data <- independent_generate(
         100,
         c(0.5, 0.2, 0.3),
         c('gamma', 'gamma'),
