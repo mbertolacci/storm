@@ -170,7 +170,7 @@ logistic_sample <- function(
     n_samples, burn_in,
     data, formula,
     distributions = c('gamma', 'gamma'), prior = NULL, sampling_scheme = NULL,
-    starting_values = 'cdf',
+    starting_values = 'bins',
     order = 1,
     thinning = NULL, attach_data = TRUE, attach_level_data = TRUE,
     panel_variable = NULL,

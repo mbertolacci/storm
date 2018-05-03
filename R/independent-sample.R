@@ -4,7 +4,7 @@ independent_sample <- function(
     y,
     distributions = c('gamma', 'gamma'), prior = NULL,
     burn_in = n_samples, sampling_scheme = NULL,
-    starting_values = 'cdf',
+    starting_values = 'bins',
     thinning = NULL,
     progress = FALSE
 ) {
