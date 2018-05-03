@@ -53,7 +53,7 @@ test_that('sample$p has the right properties', {
     expect_is(sample$p, 'mcmc')
     expect_equal(nrow(sample$p), 200)
     expect_true(all(
-        colnames(sample$p) == c('p1', 'p2', 'p3')
+        colnames(sample$p) == c('p[1]', 'p[2]', 'p[3]')
     ))
 })
 
