@@ -410,6 +410,7 @@ logistic_sample <- function(
 
     futile.logger::flog.debug('Calculating design matrix', name = 'ptsm.logistic_sample')
     design_matrix <- .get_logistic_design_matrix(data, formula, ...)
+    stopifnot(!anyNA(design_matrix))
 
     futile.logger::flog.debug('Calculating level design matrix', name = 'ptsm.logistic_sample')
     level_design_matrix <- .get_logistic_level_design_matrix(prior, level_data, level_formula, n_levels, mpi)
