@@ -1,3 +1,3 @@
-devtools::load_all('positivemixtures')
+library(storm)
 
 benchmarkLogistic(6, 20000, 2000)

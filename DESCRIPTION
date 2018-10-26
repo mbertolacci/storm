@@ -1,11 +1,11 @@
-Package: positivemixtures
+Package: storm
 Type: Package
-Title: Mixture models for the positive real line
+Title: Spatio-temporal mixtures
 Version: 0.0.1
 Date: 2016-03-08
 Author: Michael Bertolacci
 Maintainer: Michael Bertolacci <m.bertolacci@gmail.com>
-Description: Performs Bayesian estimation of mixture models for the positive real line
+Description: Performs Bayesian estimation of mixture models in a spatiotemporal context.
 License: MIT + file LICENSE
 Depends:
     coda,

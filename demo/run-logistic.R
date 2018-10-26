@@ -1,5 +1,5 @@
 library(coda)
-devtools::load_all('positivemixtures')
+library(storm)
 
 # cat('\n--------- Gamma / Gamma (single, 0-order)\n')
 

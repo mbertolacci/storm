@@ -1,4 +1,4 @@
 library(testthat)
-library(positivemixtures)
+library(storm)
 
-test_check('positivemixtures')
+test_check('storm')

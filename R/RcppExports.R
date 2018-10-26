@@ -2,128 +2,128 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 idigamma <- function(y) {
-    .Call('_positivemixtures_idigamma', PACKAGE = 'positivemixtures', y)
+    .Call('_storm_idigamma', PACKAGE = 'storm', y)
 }
 
 dgammashapeconjugate <- function(alpha, logBeta, logP, q, r) {
-    .Call('_positivemixtures_logDensity', PACKAGE = 'positivemixtures', alpha, logBeta, logP, q, r)
+    .Call('_storm_logDensity', PACKAGE = 'storm', alpha, logBeta, logP, q, r)
 }
 
 rgammashapeconjugate <- function(n, beta, logP = NA_real_, q = NA_real_, r = NA_real_, x = NULL, prior = NULL) {
-    .Call('_positivemixtures_rGammaShapeConjugateR', PACKAGE = 'positivemixtures', n, beta, logP, q, r, x, prior)
+    .Call('_storm_rGammaShapeConjugateR', PACKAGE = 'storm', n, beta, logP, q, r, x, prior)
 }
 
 .gp_sample <- function(y, designMatrix, betaPriorMean, betaPriorVariance, variancePriorAlpha, variancePriorBeta, tauSquaredPriorAlpha, tauSquaredPriorBeta, nGPBases) {
-    .Call('_positivemixtures_gpSample', PACKAGE = 'positivemixtures', y, designMatrix, betaPriorMean, betaPriorVariance, variancePriorAlpha, variancePriorBeta, tauSquaredPriorAlpha, tauSquaredPriorBeta, nGPBases)
+    .Call('_storm_gpSample', PACKAGE = 'storm', y, designMatrix, betaPriorMean, betaPriorVariance, variancePriorAlpha, variancePriorBeta, tauSquaredPriorAlpha, tauSquaredPriorBeta, nGPBases)
 }
 
 #' @export
 rgev <- function(n, mu, sigma, xi) {
-    .Call('_positivemixtures_rgevVector', PACKAGE = 'positivemixtures', n, mu, sigma, xi)
+    .Call('_storm_rgevVector', PACKAGE = 'storm', n, mu, sigma, xi)
 }
 
 .estimatePwm <- function(x, r) {
-    .Call('_positivemixtures_estimatePwm', PACKAGE = 'positivemixtures', x, r)
+    .Call('_storm_estimatePwm', PACKAGE = 'storm', x, r)
 }
 
 #' @export
 gevPwmEstimate <- function(x) {
-    .Call('_positivemixtures_gevPwmEstimate', PACKAGE = 'positivemixtures', x)
+    .Call('_storm_gevPwmEstimate', PACKAGE = 'storm', x)
 }
 
 #' @export
 gevPwmEstimateConstrained <- function(x, supportLim) {
-    .Call('_positivemixtures_gevPwmEstimateConstrained', PACKAGE = 'positivemixtures', x, supportLim)
+    .Call('_storm_gevPwmEstimateConstrained', PACKAGE = 'storm', x, supportLim)
 }
 
 .hmm_sample <- function(nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, thetaStart, thetaSampleThinning = 1L, zSampleThinning = 0L, yMissingSampleThinning = 0L, verbose = 0L) {
-    .Call('_positivemixtures_hmmSample', PACKAGE = 'positivemixtures', nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, thetaStart, thetaSampleThinning, zSampleThinning, yMissingSampleThinning, verbose)
+    .Call('_storm_hmmSample', PACKAGE = 'storm', nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, thetaStart, thetaSampleThinning, zSampleThinning, yMissingSampleThinning, verbose)
 }
 
 .independent_sample <- function(nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, distributionsStart, distributionSampleThinning = 1L, pSampleThinning = 1L, zSampleThinning = 0L, yMissingSampleThinning = 0L, progress = FALSE) {
-    .Call('_positivemixtures_independentSample', PACKAGE = 'positivemixtures', nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, distributionsStart, distributionSampleThinning, pSampleThinning, zSampleThinning, yMissingSampleThinning, progress)
+    .Call('_storm_independentSample', PACKAGE = 'storm', nSamples, burnIn, yR, distributionNames, priors, samplingSchemes, zStart, distributionsStart, distributionSampleThinning, pSampleThinning, zSampleThinning, yMissingSampleThinning, progress)
 }
 
 .logistic_ergodic_p <- function(deltaSamplesR, zSamplesR, z0SamplesR, designMatrixR, order) {
-    .Call('_positivemixtures_logisticErgodicP', PACKAGE = 'positivemixtures', deltaSamplesR, zSamplesR, z0SamplesR, designMatrixR, order)
+    .Call('_storm_logisticErgodicP', PACKAGE = 'storm', deltaSamplesR, zSamplesR, z0SamplesR, designMatrixR, order)
 }
 
 .logistic_predicted_p <- function(levels, order) {
-    .Call('_positivemixtures_logisticPredictedP', PACKAGE = 'positivemixtures', levels, order)
+    .Call('_storm_logisticPredictedP', PACKAGE = 'storm', levels, order)
 }
 
 .logistic_moments <- function(distributionSamplesR, levels, order, conditionOnPositive) {
-    .Call('_positivemixtures_logisticMoments', PACKAGE = 'positivemixtures', distributionSamplesR, levels, order, conditionOnPositive)
+    .Call('_storm_logisticMoments', PACKAGE = 'storm', distributionSamplesR, levels, order, conditionOnPositive)
 }
 
 .logistic_fitted_delta <- function(deltaFamilyMeanSamples, levelDesignMatrixR, probsR) {
-    .Call('_positivemixtures_logisticFittedDelta', PACKAGE = 'positivemixtures', deltaFamilyMeanSamples, levelDesignMatrixR, probsR)
+    .Call('_storm_logisticFittedDelta', PACKAGE = 'storm', deltaFamilyMeanSamples, levelDesignMatrixR, probsR)
 }
 
 .logistic_generate <- function(deltaR, explanatoryVariablesR, distributionParameters, distributionNames, order) {
-    .Call('_positivemixtures_logisticGenerate', PACKAGE = 'positivemixtures', deltaR, explanatoryVariablesR, distributionParameters, distributionNames, order)
+    .Call('_storm_logisticGenerate', PACKAGE = 'storm', deltaR, explanatoryVariablesR, distributionParameters, distributionNames, order)
 }
 
 .logistic_sample_mpi <- function(nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose = 0L, progress = FALSE, numThreads = 0L) {
-    .Call('_positivemixtures_logisticSampleMPI', PACKAGE = 'positivemixtures', nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress, numThreads)
+    .Call('_storm_logisticSampleMPI', PACKAGE = 'storm', nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress, numThreads)
 }
 
 .logistic_sample <- function(nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose = 0L, progress = FALSE, numThreads = 0L) {
-    .Call('_positivemixtures_logisticSample', PACKAGE = 'positivemixtures', nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress, numThreads)
+    .Call('_storm_logisticSample', PACKAGE = 'storm', nSamples, burnIn, panelY, panelDesignMatrix, order, distributionNames, priors, samplingSchemes, thetaStart, panelDeltaStart, deltaFamilyMeanStart, deltaFamilyVarianceStart, deltaDesignMatrix, thinning, verbose, progress, numThreads)
 }
 
 .logistic_sample_y <- function(panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames, order, progress = FALSE) {
-    .Call('_positivemixtures_logisticSampleY', PACKAGE = 'positivemixtures', panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames, order, progress)
+    .Call('_storm_logisticSampleY', PACKAGE = 'storm', panelExplanatoryVariablesR, panelDeltaSampleR, panelZ0SampleR, distributionSampleR, distributionNames, order, progress)
 }
 
 benchmarkLogistic <- function(nDeltas, nValues, nIterations) {
-    invisible(.Call('_positivemixtures_benchmarkLogistic', PACKAGE = 'positivemixtures', nDeltas, nValues, nIterations))
+    invisible(.Call('_storm_benchmarkLogistic', PACKAGE = 'storm', nDeltas, nValues, nIterations))
 }
 
 #' @export
 spearman_pairwise_correlation <- function(inputR) {
-    .Call('_positivemixtures_spearmanPairwiseCorrelation', PACKAGE = 'positivemixtures', inputR)
+    .Call('_storm_spearmanPairwiseCorrelation', PACKAGE = 'storm', inputR)
 }
 
 #' @export
 pairwise_conditional_probabilities <- function(inputR) {
-    .Call('_positivemixtures_pairwiseConditionalProbabilities', PACKAGE = 'positivemixtures', inputR)
+    .Call('_storm_pairwiseConditionalProbabilities', PACKAGE = 'storm', inputR)
 }
 
 #' @export
 pairwise_log_odds_of_match <- function(inputR) {
-    .Call('_positivemixtures_pairwiseLogOddsOfMatch', PACKAGE = 'positivemixtures', inputR)
+    .Call('_storm_pairwiseLogOddsOfMatch', PACKAGE = 'storm', inputR)
 }
 
 rpolyagamma <- function(length, n, z) {
-    .Call('_positivemixtures_rpolyagammaVector', PACKAGE = 'positivemixtures', length, n, z)
+    .Call('_storm_rpolyagammaVector', PACKAGE = 'storm', length, n, z)
 }
 
 thinplate_basis_2d <- function(X, nBases) {
-    .Call('_positivemixtures_thinplateBasis2d', PACKAGE = 'positivemixtures', X, nBases)
+    .Call('_storm_thinplateBasis2d', PACKAGE = 'storm', X, nBases)
 }
 
 .levels_to_list_integer_vector <- function(x, xLevels) {
-    .Call('_positivemixtures_levelsToListIntegerVector', PACKAGE = 'positivemixtures', x, xLevels)
+    .Call('_storm_levelsToListIntegerVector', PACKAGE = 'storm', x, xLevels)
 }
 
 .levels_to_list_numeric_vector <- function(x, xLevels) {
-    .Call('_positivemixtures_levelsToListNumericVector', PACKAGE = 'positivemixtures', x, xLevels)
+    .Call('_storm_levelsToListNumericVector', PACKAGE = 'storm', x, xLevels)
 }
 
 .levels_to_list_numeric_matrix <- function(x, xLevels) {
-    .Call('_positivemixtures_levelsToListNumericMatrix', PACKAGE = 'positivemixtures', x, xLevels)
+    .Call('_storm_levelsToListNumericMatrix', PACKAGE = 'storm', x, xLevels)
 }
 
 .levels_from_list_column_numeric_matrix <- function(input, levels, nLevels) {
-    .Call('_positivemixtures_levelsFromListColumnNumericMatrix', PACKAGE = 'positivemixtures', input, levels, nLevels)
+    .Call('_storm_levelsFromListColumnNumericMatrix', PACKAGE = 'storm', input, levels, nLevels)
 }
 
 .levels_from_list_column_integer_matrix <- function(input, levels, nLevels) {
-    .Call('_positivemixtures_levelsFromListColumnIntegerMatrix', PACKAGE = 'positivemixtures', input, levels, nLevels)
+    .Call('_storm_levelsFromListColumnIntegerMatrix', PACKAGE = 'storm', input, levels, nLevels)
 }
 
 .fast_matrix_spread <- function(values, rowLevels, nRowLevels, columnLevels, nColumnLevels) {
-    .Call('_positivemixtures_fastMatrixSpread', PACKAGE = 'positivemixtures', values, rowLevels, nRowLevels, columnLevels, nColumnLevels)
+    .Call('_storm_fastMatrixSpread', PACKAGE = 'storm', values, rowLevels, nRowLevels, columnLevels, nColumnLevels)
 }
 
