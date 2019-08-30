@@ -72,6 +72,7 @@ ucolvec sampleZ(
 ) {
     ucolvec z(y.n_elem);
 
+    colvec logP(pCurrent.n_cols);
     colvec p(pCurrent.n_cols);
 
     for (unsigned int i = 0; i < y.n_elem; ++i) {
@@ -81,12 +82,13 @@ ucolvec sampleZ(
             if (y[i] == 0) {
                 z[i] = 1;
             } else {
-                p.fill(0);
                 for (unsigned int k = 0; k < p.n_elem; ++k) {
                     if (distributions[k].isInSupport(y[i])) {
-                        p[k] = pCurrent(i, k) * distributions[k].pdf(y[i]);
+                        logP[k] = std::log(pCurrent(i, k)) + distributions[k].logPdf(y[i]);
                     }
                 }
+
+                p = exp(logP - max(logP));
 
                 double u = rng.randu() * arma::sum(p);
                 for (unsigned int k = 0; k < p.n_elem; ++k) {

@@ -7,8 +7,6 @@
 #include "utils.hpp"
 #include "progress.hpp"
 
-#include "independent-sampler.hpp"
-
 using arma::colvec;
 using arma::field;
 using arma::mat;

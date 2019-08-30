@@ -165,6 +165,7 @@ class ParameterBoundDistribution {
           distribution_(distribution) {
         if (distribution_.getType() == GAMMA) {
             norm_ = pow(parameters_[1], -parameters_[0]) / tgamma(parameters_[0]);
+            logNorm_ = -parameters_[0] * std::log(parameters_[1]) - lgamma(parameters_[0]);
         } else if (distribution_.getType() == LOG_NORMAL) {
             norm_ = -0.5 * log(parameters_[1]) + 0.5 * log(2 * M_PI);
         } else if (distribution_.getType() == GENERALISED_GAMMA) {
@@ -203,6 +204,15 @@ class ParameterBoundDistribution {
         }
     }
 
+    double logPdf(double x) const {
+        switch (distribution_.getType()) {
+        case GAMMA:
+            return logNorm_ + (parameters_[0] - 1) * std::log(x) - x / parameters_[1];
+        default:
+            return -1;
+        }
+    }
+
     double sample() const {
         return distribution_.sample(parameters_);
     }
@@ -212,6 +222,7 @@ class ParameterBoundDistribution {
     Distribution distribution_;
 
     double norm_;
+    double logNorm_;
 };
 
 #endif  // SRC_DISTRIBUTION_HPP_
